@@ -215,8 +215,8 @@ const Progress = () => {
                                 <thead>
                                     <tr>
                                         <th class='text-center' scope="col" style={{ width: "170px" }}>Date</th>
-                                        <th class='text-center' style={{ width: "100px" }} scope="col">Time</th>
-                                        <th style={{ width: "180px" }} scope="col">Objective</th>
+                                        <th class='text-center'  style={{ width: "100px" }} scope="col">Time</th>
+                                        <th class='text-center' style={{ width: "180px" }} scope="col">Objective</th>
                                         <th class='text-center' scope="col">Progress</th>
 
                                     </tr>
