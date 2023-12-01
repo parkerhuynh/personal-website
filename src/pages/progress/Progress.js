@@ -11,20 +11,20 @@ window.katex = katex;
 
 const Progress = () => {
     const { currentUser } = useAuth();
-    const [isContentTall, setIsContentTall] = useState(false);
     const [progress, setProgress] = useState([]);
     const [userInfo, setUserInfo] = useState({});
     const [inputData, setInputData] = useState({
         object: '',
         action: '',
-        important: false
+        important: false,
+        
     });
 
     useEffect(() => {
         if (currentUser) {
             getUserInfo();
         }
-    }, [currentUser]); // Dependency on currentUser
+    }, [currentUser]);
 
     const getUserInfo = async () => {
         try {
@@ -135,7 +135,7 @@ const Progress = () => {
             { 'indent': '-1' }, { 'indent': '+1' }],
             ['link'],
             ['formula'],
-            
+
         ],
         clipboard: {
             // Extend clipboard module to handle mixed content better
@@ -155,6 +155,7 @@ const Progress = () => {
                 ) : (
                     <div>
                         <div className="container pt-4">
+                        <h2 class="text-light text-center">Progress</h2>
                             <form onSubmit={handleSubmit}>
                                 <div className="form-group">
                                     <label htmlFor="object"><h4 className="text-light px-2">Object</h4></label>
@@ -163,7 +164,7 @@ const Progress = () => {
                                         className="form-control"
                                         id="object"
                                         name="object"
-                                        placeholder="Enter object"
+                                        placeholder="Enter objective"
                                         value={inputData.object}
                                         onChange={handleInputChange}
                                         required
@@ -172,16 +173,6 @@ const Progress = () => {
 
                                 <div className="form-group">
                                     <label htmlFor="action"><h4 className="text-light px-2 pt-3">Actions</h4></label>
-                                    {/* <textarea
-                                        className="form-control"
-                                        id="action"
-                                        name="action"
-                                        rows="2"
-                                        placeholder="Enter actions"
-                                        value={inputData.action}
-                                        onChange={handleInputChange}
-                                        required
-                                    /> */}
                                     <ReactQuill
                                         theme="snow"
                                         value={inputData.action}
