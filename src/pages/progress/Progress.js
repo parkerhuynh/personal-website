@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from "../../components/AuthContext";
 import axios from 'axios';
-import backgroundImg from "../../background.jpg";
 import "../../App.css";
 const Progress = () => {
     const { currentUser } = useAuth();
@@ -16,8 +15,6 @@ const Progress = () => {
 
     useEffect(() => {
         if (currentUser) {
-            const contentIsTall = document.body.clientHeight > window.innerHeight;
-            setIsContentTall(contentIsTall);
             getUserInfo();
         }
     }, [currentUser]); // Dependency on currentUser
@@ -100,7 +97,6 @@ const Progress = () => {
 
     const handleRowDelete = (rowId) => {
         // Confirm with the user before deleting the row
-        if (window.confirm('Are you sure you want to delete this row?')) {
             // Send a DELETE request to the server
             axios.post(`/delete_progress/${rowId}`)
                 .then(response => {
@@ -114,27 +110,13 @@ const Progress = () => {
                 .catch(error => {
                     console.error('There was an error deleting the row:', error);
                 });
-        }
     };
+    console.log(progress)
     return (
-        <div className={isContentTall ? 'background-image-repeat' : 'background-image-fit-screen'}>
-            {/* <div
-                style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    height: "100%",
-                    width: "100%",
-                    backgroundImage: `url(${backgroundImg})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    filter: "blur(5px)",
-                    zIndex: -1
-                }}
-            /> */}
+        <div className={'background-image-repeat'}>
             <div className="container">
                 {!currentUser ? (
-                    <div className="pt-5 text-center" style={{ height: "100vh" }}>
+                    <div className="pt-5 text-center">
                         <h1 className="text-danger pb-5">Warning!</h1>
                         <h5>Access Restricted: Please log in to view this content. This area is exclusive to registered users.</h5>
                         <h5> If you don't have an account, you can <a href="/signup">sign up</a> to access special features and content.</h5>
@@ -192,13 +174,13 @@ const Progress = () => {
                         </div>
                         {/* Progress Table will be here */}
                         <div className="table-responsive">
-                            <table className="table table-dark mt-4">
+                            <table className="table table-dark table-bordered mt-4">
                                 <thead>
                                     <tr>
                                         <th class='text-center' scope="col" style={{ width: "170px" }}>Date</th>
-                                        <th scope="col">Time</th>
-                                        <th scope="col">Objective</th>
-                                        <th scope="col">Progress</th>
+                                        <th class='text-center' style={{ width: "100px" }} scope="col">Time</th>
+                                        <th style={{ width: "180px" }} scope="col">Objective</th>
+                                        <th class='text-center' scope="col">Progress</th>
 
                                     </tr>
                                 </thead>
@@ -209,9 +191,9 @@ const Progress = () => {
                                                 {index === 0 && (
                                                     <td rowSpan={group.items.length} style={{ verticalAlign: 'middle', textAlign: 'center' }}>{group.date}</td>
                                                 )}
-                                                <td onDoubleClick={() => handleRowDelete(item.id)}>{item.time}</td>
-                                                <td onDoubleClick={() => handleRowDelete(item.id)}>{item.objective}</td>
-                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''}>{item.progress}</td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : '' } style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''} style={{ verticalAlign: 'middle' }}>{item.objective}</td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''} style={{"white-space": "pre-line"}}>{item.progress}</td>
                                             </tr>
                                         ))
                                     )}
