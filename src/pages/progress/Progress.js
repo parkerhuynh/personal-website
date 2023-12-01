@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from "../../components/AuthContext";
 import axios from 'axios';
 import "../../App.css";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
+import 'katex/dist/katex.min.css';
+import katex from 'katex';
+window.katex = katex;
+
 const Progress = () => {
     const { currentUser } = useAuth();
     const [isContentTall, setIsContentTall] = useState(false);
@@ -40,11 +47,19 @@ const Progress = () => {
     };
 
     const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setInputData(prevInputData => ({
-            ...prevInputData,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        if (e.target) { // Regular inputs
+            const { name, value, type, checked } = e.target;
+            setInputData(prevInputData => ({
+                ...prevInputData,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        } else { // ReactQuill editor
+            console.log(e)
+            setInputData(prevInputData => ({
+                ...prevInputData,
+                action: e  // 'e' is the new value from ReactQuill
+            }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -97,29 +112,45 @@ const Progress = () => {
 
     const handleRowDelete = (rowId) => {
         // Confirm with the user before deleting the row
-            // Send a DELETE request to the server
-            axios.post(`/delete_progress/${rowId}`)
-                .then(response => {
-                    // If the delete was successful, update the state to remove the row
-                    if (response.status === 200) {
-                        setProgress(prevProgress => prevProgress.filter(item => item.id !== rowId));
-                    } else {
-                        console.error('Failed to delete the row:', response.data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('There was an error deleting the row:', error);
-                });
+        // Send a DELETE request to the server
+        axios.post(`/delete_progress/${rowId}`)
+            .then(response => {
+                // If the delete was successful, update the state to remove the row
+                if (response.status === 200) {
+                    setProgress(prevProgress => prevProgress.filter(item => item.id !== rowId));
+                } else {
+                    console.error('Failed to delete the row:', response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('There was an error deleting the row:', error);
+            });
     };
-    console.log(progress)
+    const modules = {
+        toolbar: [
+            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+            [{ 'size': [] }],
+            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' },
+            { 'indent': '-1' }, { 'indent': '+1' }],
+            ['link'],
+            ['formula'],
+            
+        ],
+        clipboard: {
+            // Extend clipboard module to handle mixed content better
+            matchVisual: false,
+        },
+        formula: true,
+    };
     return (
         <div className={'background-image-repeat'}>
             <div className="container">
                 {!currentUser ? (
                     <div className="pt-5 text-center">
                         <h1 className="text-danger pb-5">Warning!</h1>
-                        <h5>Access Restricted: Please log in to view this content. This area is exclusive to registered users.</h5>
-                        <h5> If you don't have an account, you can <a href="/signup">sign up</a> to access special features and content.</h5>
+                        <h5 className="text-light">Access Restricted: Please log in to view this content. This area is exclusive to registered users.</h5>
+                        <h5 className="text-light"> If you don't have an account, you can <a href="/signup">sign up</a> to access special features and content.</h5>
                     </div>
                 ) : (
                     <div>
@@ -141,7 +172,7 @@ const Progress = () => {
 
                                 <div className="form-group">
                                     <label htmlFor="action"><h4 className="text-light px-2 pt-3">Actions</h4></label>
-                                    <textarea
+                                    {/* <textarea
                                         className="form-control"
                                         id="action"
                                         name="action"
@@ -150,6 +181,12 @@ const Progress = () => {
                                         value={inputData.action}
                                         onChange={handleInputChange}
                                         required
+                                    /> */}
+                                    <ReactQuill
+                                        theme="snow"
+                                        value={inputData.action}
+                                        onChange={handleInputChange}
+                                        modules={modules}
                                     />
                                 </div>
                                 <div class="d-flex justify-content-center">
@@ -187,13 +224,14 @@ const Progress = () => {
                                 <tbody>
                                     {groupedProgress.map((group, groupIndex) =>
                                         group.items.map((item, index) => (
-                                            <tr key={item.id} style={groupStripedStyle(groupIndex)}>
+                                            // <tr key={item.id} style={groupStripedStyle(groupIndex)}>
+                                            <tr key={item.id}>
                                                 {index === 0 && (
                                                     <td rowSpan={group.items.length} style={{ verticalAlign: 'middle', textAlign: 'center' }}>{group.date}</td>
                                                 )}
-                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : '' } style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''} style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
                                                 <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''} style={{ verticalAlign: 'middle' }}>{item.objective}</td>
-                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''} style={{"white-space": "pre-line"}}>{item.progress}</td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''}><div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} /></td>
                                             </tr>
                                         ))
                                     )}

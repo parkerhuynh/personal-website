@@ -28,7 +28,6 @@ export default function Login() {
 
     return (
         <div className="background-image-repeat">
-            Background div with blur
             <div
                 style={{
                     position: "absolute",
