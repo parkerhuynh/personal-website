@@ -226,9 +226,9 @@ const Progress = () => {
                                                 {index === 0 && (
                                                     <td rowSpan={group.items.length} style={{ verticalAlign: 'middle', textAlign: 'center' }}>{group.date}</td>
                                                 )}
-                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''} style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
-                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''} style={{ verticalAlign: 'middle' }}>{item.objective}</td>
-                                                <td onDoubleClick={() => handleRowDelete(item.id)} className={item.important ? 'text-danger' : ''}><div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} /></td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)}  style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)}  style={{ verticalAlign: 'middle', textAlign: 'center' }}>{item.objective}</td>
+                                                <td onDoubleClick={() => handleRowDelete(item.id)} style={{ verticalAlign: 'middle', textAlign: 'left' }}><div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} /></td>
                                             </tr>
                                         ))
                                     )}
