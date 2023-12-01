@@ -7,6 +7,7 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import Progress from './pages/progress/Progress';
 import ForgotPassword from "./components/ForgotPassword"
+import Deadlines from './pages/progress/Deadlines';
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/deadlines" element={<Deadlines />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           
         </Route>

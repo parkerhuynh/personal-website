@@ -20,9 +20,13 @@ from sqlalchemy import create_engine
 from utils import connect_to_mysql
 from word2number import w2n
 from utils import make_conn
+from datetime import datetime, timedelta
+import calendar
+from time import sleep
+import bcrypt
+import pytz
 from datetime import datetime
 import calendar
-import bcrypt
 host = 'localhost'
 user = 'root'
 password = '12341234'
@@ -39,8 +43,7 @@ def day_process(datetime_obj):
     Returns:
     tuple: A tuple containing the day of the week, day, and time.
     """
-    from datetime import datetime
-    import calendar
+    
 
     # Convert the string to a datetime object
 
@@ -51,8 +54,48 @@ def day_process(datetime_obj):
 
     return day_of_week, day, time
 
+def convert_to_mysql_datetime(iso_datetime):
+        return datetime.fromisoformat(iso_datetime.replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S')
 
-from time import sleep
+def format_deadline(deadline, complete, current_time_in_timezone):
+    diff = deadline - current_time_in_timezone
+
+    # Constants
+    one_day = timedelta(days=1)
+    one_week = timedelta(days=7)
+    one_month = timedelta(days=30)
+
+    # If the deadline has passed
+    if diff.total_seconds() < 0:
+        if complete:
+            return "Completed"
+        else:
+            # Calculate the time since deadline
+            since_deadline = abs(diff)
+            if since_deadline < one_day:
+                hours = since_deadline.seconds // 3600
+                return f"Expired {hours} hour{'s' if hours > 1 else ''} ago"
+            elif since_deadline < one_month:
+                days = since_deadline.days
+                return f"Expired {days} day{'s' if days > 1 else ''} ago"
+            else:
+                months = since_deadline.days // 30
+                days = since_deadline.days % 30
+                return f"Expired {months} month{'s' if months > 1 else ''} and {days} day{'s' if days > 1 else ''} ago"
+
+    # If the deadline is in the future
+    else:
+        if diff > one_month:
+            return f"In {diff.days // 30} month{'s' if diff.days // 30 > 1 else ''} and {diff.days % 30} day{'s' if diff.days % 30 > 1 else ''}"
+        elif diff > one_week:
+            return f"In {diff.days // 7} week{'s' if diff.days // 7 > 1 else ''} and {diff.days % 7} day{'s' if diff.days % 7 > 1 else ''}"
+        elif diff > one_day:
+            return f"In {diff.days} day{'s' if diff.days > 1 else ''} and {diff.seconds // 3600} hour{'s' if diff.seconds // 3600 > 1 else ''}"
+        else:
+            hours = diff.seconds // 3600
+            minutes = (diff.seconds % 3600) // 60
+            return f"In {hours} hour{'s' if hours > 1 else ''} and {minutes} minute{'s' if minutes > 1 else ''}"
+
 app = Flask(__name__)
 @app.route('/create_user', methods=['POST'])
 def create_user():
@@ -92,6 +135,7 @@ def get_user_info(email):
     result["username"] = result["username"]
     return result
 
+#PROGRESS PROCESS
 @app.route('/get_process_list/<user>', methods=['POST','GET'])
 def get_process_list():
     connection = make_conn()
@@ -120,7 +164,6 @@ def add_progress():
     
 @app.route('/get_progress/<user_id>', methods=['POST','GET'])
 def get_progress(user_id):
-    print(user_id)
     connection = make_conn()
     with connection.cursor() as cursor:
         query = f"SELECT * FROM progress WHERE user_id = {user_id}"
@@ -140,6 +183,58 @@ def delete_progress(row_id):
     connection = make_conn()
     with connection.cursor() as cursor:
         delete_query = F"DELETE FROM progress WHERE id = {row_id}"
+        cursor.execute(delete_query)
+        connection.commit()
+    return Response("success", 200)
+
+
+#DEALINE PROCESS
+@app.route('/add-deadline', methods=['POST'])
+def add_deadline():
+    data = request.json
+    connection = make_conn()
+    start_date = data['startDate']
+    end_date = data['endDate']
+    with connection.cursor() as cursor:
+        sql = "INSERT INTO deadlines (start_date, end_date, notification, objective, note, user_id, username, complete, timezone) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        values = (start_date, end_date, data['notification'], data['objective'], data['note'], data['user_id'], data['username'], 0, data['timezone'])
+        cursor.execute(sql, values)
+        connection.commit()
+
+    return jsonify({'message': 'Deadline added successfully'}), 200
+
+
+@app.route('/get_deadlines/<user_id>/<offset>', methods=['POST','GET'])
+def get_deadlines(user_id, offset):
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM deadlines WHERE user_id = {user_id}"
+        
+        cursor.execute(query)
+    results = cursor.fetchall()
+
+    hours, minutes = map(int, offset.split(':'))
+    timezone = pytz.FixedOffset(hours * 60 + minutes)
+    current_time_in_timezone = datetime.now(timezone)
+
+    for i in range(len(results)):
+        results[i]["end_date"] = datetime.strptime(results[i]["end_date"], '%Y-%m-%d %H:%M:%S %z')
+        print(results[i]["end_date"])
+        results[i]["end_date"] = results[i]["end_date"].astimezone(timezone)
+        results[i]["start_date"] = datetime.strptime(results[i]["start_date"], '%Y-%m-%d %H:%M:%S %z')
+        results[i]["start_date"] = results[i]["start_date"].astimezone(timezone)
+        days_until_given_date = (results[i]["end_date"] - current_time_in_timezone).days
+        results[i]["days_until_given_date"] = days_until_given_date
+        results[i]["rest_day_render"] = format_deadline(results[i]["end_date"], results[i]["complete"], current_time_in_timezone)
+        results[i]["end_date"] = results[i]["end_date"].strftime('%Y:%m:%d %H:%M:%S')
+    return jsonify(results)
+
+@app.route('/delete_deadline/<int:row_id>', methods=['POST'])
+def delete_deadline(row_id):
+    # Establish a connection and create a cursor
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        delete_query = F"DELETE FROM deadlines WHERE id = {row_id}"
         cursor.execute(delete_query)
         connection.commit()
     return Response("success", 200)
