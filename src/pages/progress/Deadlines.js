@@ -235,7 +235,7 @@ const Progress = () => {
                                         <tr onDoubleClick={() => handleRowDelete(item.id)} key={itemIndex}>
                                             <td class='text-center' >{itemIndex}</td>
                                             <td class='text-center' >{item.objective}</td>
-                                            <td class='text-center'>{item.note}</td>
+                                            <td>{item.note}</td>
                                             <td class='text-center' >{item.end_date}</td>
                                             <td class='text-center' >{item.rest_day_render}</td>
                                         </tr>
