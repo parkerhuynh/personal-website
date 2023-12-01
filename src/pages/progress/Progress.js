@@ -131,6 +131,12 @@ const Progress = () => {
             [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
             [{ 'size': [] }],
             ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+            [
+                {
+                  color: ["red", "blue", "yellow"],
+                },
+            ],
+            [ 'code-block', 'image'],
             [{ 'list': 'ordered' }, { 'list': 'bullet' },
             { 'indent': '-1' }, { 'indent': '+1' }],
             ['link'],
@@ -181,7 +187,7 @@ const Progress = () => {
                                     />
                                 </div>
                                 <div class="d-flex justify-content-center">
-                                    <div className="d-flex justify-content-center align-items-center pt-3 mx-5">
+                                    {/* <div className="d-flex justify-content-center align-items-center pt-3 mx-5">
                                         <div className="form-check">
                                             <input
                                                 type="checkbox"
@@ -193,7 +199,7 @@ const Progress = () => {
                                             />
                                             <label className="form-check-label text-light" htmlFor="important">Important</label>
                                         </div>
-                                    </div>
+                                    </div> */}
                                     <div className='text-center pt-3'>
                                         <button type="submit" className="btn btn-light">Submit</button>
                                     </div>
