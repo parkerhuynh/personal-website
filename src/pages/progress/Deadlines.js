@@ -43,7 +43,7 @@ const Progress = () => {
         try {
             console.log(`/get_deadlines/${userId}/${moment().tz(moment.tz.guess()).format('Z')}`)
             const response = await axios.get(`/get_deadlines/${userId}/${moment().tz(moment.tz.guess()).format('Z')}`);
-            const sortedDeadlines = response.data.sort((a, b) => new Date(b.end_date) - new Date(a.end_date));
+            const sortedDeadlines = response.data.sort((a, b) => b.days_until_given_date - a.days_until_given_date);
             setDeadlines(sortedDeadlines);
         } catch (error) {
             console.error("Error fetching deadlines:", error);
