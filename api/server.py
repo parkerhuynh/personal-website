@@ -157,7 +157,7 @@ def add_progress():
     with connection.cursor() as cursor:
         query = """INSERT INTO progress (user_id, username, objective, progress, important) 
                     VALUES (%s, %s, %s, %s, %s)"""
-        
+        print(query, (data['user_id'], data['username'], data['objective'], data['progress'], data['important']))
         cursor.execute(query, (data['user_id'], data['username'], data['objective'], data['progress'], data['important']))
         connection.commit()
         return jsonify({"message": "Progress added successfully"}), 200
@@ -187,6 +187,19 @@ def delete_progress(row_id):
         connection.commit()
     return Response("success", 200)
 
+@app.route('/update_progress/<int:progress_id>', methods=['POST'])
+def update_progress(progress_id):
+    data = request.get_json()
+    objective = data['objective']
+    progress = data['progress']
+    connection = make_conn()
+    progress_id = str(progress_id)
+    print((objective, progress, progress_id))
+    with connection.cursor() as cursor:
+        query = f' UPDATE progress SET objective = "{objective}", progress = "{progress}" WHERE id = {progress_id};'
+        cursor.execute(query)
+        connection.commit()
+    return jsonify({"message": "Progress updated successfully"}), 200
 
 #DEALINE PROCESS
 @app.route('/add-deadline', methods=['POST'])
@@ -239,6 +252,8 @@ def delete_deadline(row_id):
         cursor.execute(delete_query)
         connection.commit()
     return Response("success", 200)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8888)

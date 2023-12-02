@@ -22,6 +22,13 @@ const Progress = () => {
         important: false,
 
     });
+    const [editingId, setEditingId] = useState(null); // Track which row is being edited
+    const [tempInputData, setTempInputData] = useState({ object: '', action: '' });
+
+    const handleEdit = (item) => {
+        setEditingId(item.id);
+        setTempInputData({ object: item.objective, action: item.progress });
+    };
 
     useEffect(() => {
         if (currentUser) {
@@ -109,7 +116,7 @@ const Progress = () => {
     };
     const groupedProgress = groupByDate(progress);
     const groupStripedStyle = (index) => ({
-        backgroundColor: index % 2 === 0 ? '#aee300' : '', // Alternating color for even and odd groups
+        backgroundColor: index % 2 === 0 ? '#1B2631' : '', // Alternating color for even and odd groups
     });
 
 
@@ -151,6 +158,30 @@ const Progress = () => {
             matchVisual: false,
         },
         formula: true,
+    };
+
+    const saveEdit = async (itemId) => {
+        // Call backend API to save changes
+        try {
+            const response = await axios.post(`/update_progress/${itemId}`, {
+                objective: tempInputData.object,
+                progress: tempInputData.action,
+            });
+            // Update local state with new data
+            setProgress(prevProgress => prevProgress.map(item =>
+                item.id === itemId ? { ...item, objective: tempInputData.object, progress: tempInputData.action } : item
+            ));
+            setEditingId(null); // Exit editing mode
+        } catch (error) {
+            console.error('Error updating progress:', error);
+        }
+    };
+    const handleKeyPress = async (e, itemId) => {
+        console.log("Asdasd")
+        if (e.key === 'Enter') {
+            // Save changes and exit edit mode
+            await saveEdit(itemId);
+        }
     };
     return (
         <div className={'background-image-repeat'}>
@@ -212,17 +243,50 @@ const Progress = () => {
                                 <tbody>
                                     {groupedProgress.map((group, groupIndex) =>
                                         group.items.map((item, index) => (
-                                            // <tr key={item.id} style={groupStripedStyle(groupIndex)}>
-                                            <tr key={item.id}>
+                                            <tr key={item.id} style={groupStripedStyle(groupIndex)}>
+                                                {/* <tr key={item.id}> */}
                                                 {index === 0 && (
                                                     <td rowSpan={group.items.length} style={{ verticalAlign: 'middle', textAlign: 'center' }}>{group.date}</td>
                                                 )}
                                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
-                                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>{item.objective}</td>
-                                                <td style={{ verticalAlign: 'middle', textAlign: 'left' }}><div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} /></td>
-                                                <td className="text-center"  style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                                    {
+                                                        editingId === item.id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={tempInputData.object}
+                                                                onChange={(e) => setTempInputData({ ...tempInputData, object: e.target.value })}
+                                                                onKeyPress={(e) => handleKeyPress(e, item.id)}
+                                                                autoFocus
+                                                            />
+                                                        ) : (
+                                                            <span onDoubleClick={() => handleEdit(item)}>{item.objective}</span>
+                                                        )
+                                                    }</td>
+                                                <td style={{ verticalAlign: 'middle', textAlign: 'left' }}>
+                                                    {
+                                                        editingId === item.id ? (
+                                                            <div class="">
+                                                                <ReactQuill
+                                                                    theme="snow"
+                                                                    value={tempInputData.action}
+                                                                    onChange={(e) => setTempInputData({ ...tempInputData, action: e })}
+                                                                    onKeyPress={(e) => handleKeyPress(e, item.id)}
+                                                                    modules={modules}
+                                                                />
+                                                                <div class="text-center mt-1">
+                                                                    <button onClick={() => saveEdit(item.id)} className="btn btn-light btn-sm">Save</button>
+                                                                </div>
+                                                                
+                                                            </div>
+                                                                
+                                                        ) : (
+                                                            <div onDoubleClick={() => handleEdit(item)} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} />
+                                                        )}
+                                                </td>
+                                                <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                                     <button onClick={() => handleRowDelete(item.id)} className="btn btn-sm btn-light text-center">
-                                                        <FontAwesomeIcon icon={faTrashAlt}  />
+                                                        <FontAwesomeIcon icon={faTrashAlt} />
                                                     </button>
                                                 </td>
                                             </tr>
