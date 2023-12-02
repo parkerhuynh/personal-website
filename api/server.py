@@ -226,7 +226,8 @@ def get_deadlines(user_id, offset):
         days_until_given_date = (results[i]["end_date"] - current_time_in_timezone).days
         results[i]["days_until_given_date"] = days_until_given_date
         results[i]["rest_day_render"] = format_deadline(results[i]["end_date"], results[i]["complete"], current_time_in_timezone)
-        results[i]["end_date"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S')
+        results[i]["end_date_render"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S')
+        results[i]["end_date"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S %z')
     return jsonify(results)
 
 @app.route('/delete_deadline/<int:row_id>', methods=['POST'])

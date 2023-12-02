@@ -6,8 +6,11 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DOMPurify from 'dompurify';
 import 'katex/dist/katex.min.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import katex from 'katex';
 window.katex = katex;
+
 
 const Progress = () => {
     const { currentUser } = useAuth();
@@ -17,7 +20,7 @@ const Progress = () => {
         object: '',
         action: '',
         important: false,
-        
+
     });
 
     useEffect(() => {
@@ -133,10 +136,10 @@ const Progress = () => {
             ['bold', 'italic', 'underline', 'strike', 'blockquote'],
             [
                 {
-                  color: ["red", "blue", "yellow"],
+                    color: ["red", "blue", "yellow"],
                 },
             ],
-            [ 'code-block', 'image'],
+            ['code-block', 'image'],
             [{ 'list': 'ordered' }, { 'list': 'bullet' },
             { 'indent': '-1' }, { 'indent': '+1' }],
             ['link'],
@@ -161,7 +164,7 @@ const Progress = () => {
                 ) : (
                     <div>
                         <div className="container pt-4">
-                        <h2 class="text-light text-center">Progress</h2>
+                            <h2 class="text-light text-center">Progress</h2>
                             <form onSubmit={handleSubmit}>
                                 <div className="form-group">
                                     <label htmlFor="object"><h4 className="text-light px-2">Object</h4></label>
@@ -187,19 +190,6 @@ const Progress = () => {
                                     />
                                 </div>
                                 <div class="d-flex justify-content-center">
-                                    {/* <div className="d-flex justify-content-center align-items-center pt-3 mx-5">
-                                        <div className="form-check">
-                                            <input
-                                                type="checkbox"
-                                                className="form-check-input"
-                                                id="important"
-                                                name="important"
-                                                checked={inputData.important}
-                                                onChange={handleInputChange}
-                                            />
-                                            <label className="form-check-label text-light" htmlFor="important">Important</label>
-                                        </div>
-                                    </div> */}
                                     <div className='text-center pt-3'>
                                         <button type="submit" className="btn btn-light">Submit</button>
                                     </div>
@@ -215,6 +205,7 @@ const Progress = () => {
                                         <th class='text-center' style={{ width: "100px" }} scope="col">Time</th>
                                         <th style={{ width: "180px" }} scope="col">Objective</th>
                                         <th class='text-center' scope="col">Progress</th>
+                                        <th style={{ width: "40px" }} class='text-center' scope="col"></th>
 
                                     </tr>
                                 </thead>
@@ -226,9 +217,14 @@ const Progress = () => {
                                                 {index === 0 && (
                                                     <td rowSpan={group.items.length} style={{ verticalAlign: 'middle', textAlign: 'center' }}>{group.date}</td>
                                                 )}
-                                                <td onDoubleClick={() => handleRowDelete(item.id)}  style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
-                                                <td onDoubleClick={() => handleRowDelete(item.id)}  style={{ verticalAlign: 'middle', textAlign: 'center' }}>{item.objective}</td>
-                                                <td onDoubleClick={() => handleRowDelete(item.id)} style={{ verticalAlign: 'middle', textAlign: 'left' }}><div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} /></td>
+                                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center'>{item.time}</td>
+                                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>{item.objective}</td>
+                                                <td style={{ verticalAlign: 'middle', textAlign: 'left' }}><div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} /></td>
+                                                <td className="text-center"  style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                                    <button onClick={() => handleRowDelete(item.id)} className="btn btn-sm btn-light text-center">
+                                                        <FontAwesomeIcon icon={faTrashAlt}  />
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))
                                     )}
