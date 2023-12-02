@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, CSSProperties } from 'react';
 import axios from 'axios';
 import { useAuth } from "../../components/AuthContext";
 import DatePicker from 'react-datepicker';
@@ -15,14 +15,44 @@ const Progress = () => {
     const { currentUser } = useAuth();
     const [userInfo, setUserInfo] = useState({});
     const [deadlines, setDeadlines] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({
-        startDate: new Date(),
         endDate: new Date(),
         notification: '1',
         objective: '',
         note: '',
         timezone: { value: moment.tz.guess(), label: moment.tz.guess() }
     });
+    const [editingId, setEditingId] = useState(null);
+    const [tempInputData, setTempInputData] = useState({
+        endDate: new Date(),
+        notification: '1',
+        objective: '',
+        note: '',
+        status: 'no status',
+        timezone: { value: moment.tz.guess(), label: moment.tz.guess() }
+    });
+
+
+    const handleEdit = (item) => {
+        console.log(item)
+        const dateTimeWithZone = moment(item.original_end_date, "DD:MM:YYYY HH:mm:ss Z");
+        const offset = dateTimeWithZone.utcOffset();
+        const timezonesWithSameOffset = moment.tz.names().filter(tz => {
+            return moment.tz(tz).utcOffset() === offset;
+        });
+        
+        setEditingId(item.id);
+        setTempInputData({
+            endDate: moment(item.original_end_date, "DD:MM:YYYY HH:mm:ss Z").utc().toDate(),
+            endDate_str: item.original_end_date,
+            notification: item.notification,
+            objective: item.objective,
+            note: item.note,
+            timezone: { value: timezonesWithSameOffset[0], label: timezonesWithSameOffset[0] },
+            status: item.status
+        });
+    };
 
     useEffect(() => {
         if (currentUser) {
@@ -42,7 +72,6 @@ const Progress = () => {
 
     const fetchUserDeadlines = async (userId) => {
         try {
-            console.log(`/get_deadlines/${userId}/${moment().tz(moment.tz.guess()).format('Z')}`)
             const response = await axios.get(`/get_deadlines/${userId}/${moment().tz(moment.tz.guess()).format('Z')}`);
             const sortedDeadlines = response.data.sort((a, b) => b.days_until_given_date - a.days_until_given_date);
             setDeadlines(sortedDeadlines);
@@ -67,13 +96,11 @@ const Progress = () => {
         e.preventDefault();
         const formData = {
             ...form,
-            startDate: formatDate(form.startDate, form.timezone.value),
             endDate: formatDate(form.endDate, form.timezone.value),
             user_id: userInfo.id,
             username: userInfo.username,
             timezone: moment().tz(form.timezone.value).format('Z')
         };
-        console.log(formData)
 
         try {
             await axios.post('add-deadline', formData);
@@ -95,7 +122,6 @@ const Progress = () => {
 
     const resetForm = () => {
         setForm({
-            startDate: new Date(),
             endDate: new Date(),
             notification: '1',
             objective: '',
@@ -130,24 +156,59 @@ const Progress = () => {
             </div>
         );
     }
-    console.log(deadlines)
+    const rowStripedStyle = (index) => ({
+        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.4)' : 'rgb(52, 73, 94 , 0.5)', // Alternating color for even and odd groups
+    });
+
+    const handleKeyPress = async (e, itemId) => {
+        if (e.key === 'Enter') {
+            // Save changes and exit edit mode
+            await saveEdit(itemId);
+        }
+    };
+    const saveEdit = async (itemId) => {
+        try {
+            // Update local state first
+            setEditingId(null);
+            tempInputData.endDate = formatDate(tempInputData.endDate, tempInputData.timezone.value)
+            // tempInputData.status = tempInputData.status.value
+
+            tempInputData.timezone = moment().tz(tempInputData.timezone.value).format('Z')
+            await axios.post(`/update_deadline/${itemId}`, tempInputData).then(async () => {
+                fetchUserDeadlines(userInfo.id)
+            }
+            )
+
+            // Reset temp data and exit edit mode
+
+            setTempInputData({
+                endDate: new Date(),
+                notification: '1',
+                objective: '',
+                note: '',
+                timezone: { value: moment.tz.guess(), label: moment.tz.guess() }
+            });
+        } catch (error) {
+            console.error('Error updating deadline:', error);
+        }
+    };
+    const cancel = async () => {
+        setEditingId(null);
+    };
+    const status_options = [
+        { value: 'no status', label: 'no status' },
+        { value: 'doing', label: 'doing' },
+        { value: 'pending', label: 'pending' },
+        { value: 'doing', label: 'doing' },
+        { value: 'done!', label: 'done!' }
+    ]
+
     return (
         <div className="background-image-repeat">
             <div className="container">
                 <h2 className="text-light text-center pt-5 pb-3">Deadlines</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="row">
-                        <div className="col-md-6">
-                            <label htmlFor="startDate" className="text-light me-3">Start Date:</label>
-                            <DatePicker
-                                id="startDate"
-                                selected={form.startDate}
-                                onChange={(date) => handleDateChange('startDate', date)}
-                                showTimeSelect
-                                dateFormat="Pp"
-                                className="form-control"
-                            />
-                        </div>
                         <div className="col-md-6">
                             <label htmlFor="endDate" className="text-light me-3">End Date:</label>
                             <DatePicker
@@ -227,6 +288,7 @@ const Progress = () => {
                                 <th class='text-center' scope="col" >Description</th>
                                 <th class='text-center' scope="col" style={{ width: "180px" }}>Deadline</th>
                                 <th class='text-center' scope="col" style={{ width: "170px" }}>Times util Deadlines</th>
+                                <th class='text-center' scope="col" style={{ width: "100px" }}>Status</th>
                                 <th style={{ width: "40px" }} class='text-center' scope="col"></th>
 
 
@@ -234,16 +296,87 @@ const Progress = () => {
                         </thead>
                         <tbody>
                             {deadlines.map((item, itemIndex) => (
-                                <tr key={itemIndex}>
+                                <tr key={itemIndex} style={rowStripedStyle(itemIndex)}>
                                     <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{itemIndex + 1}</td>
-                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{item.objective}</td>
-                                    <td>{item.note}</td>
-                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{item.end_date_render}</td>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
+                                        {editingId === item.id ?
+                                            (<input
+                                                style={{ width: "130px" }}
+                                                type="text"
+                                                value={tempInputData.objective}
+                                                onChange={(e) => setTempInputData({ ...tempInputData, objective: e.target.value })}
+                                                onKeyPress={(e) => handleKeyPress(e, item.id)}
+                                            />) :
+                                            (<span onDoubleClick={() => handleEdit(item)}>{item.objective}</span>)
+                                        }
+                                    </td>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                        {editingId === item.id ?
+                                            (<input
+                                                style={{ width: "130px" }}
+                                                type="text"
+                                                value={tempInputData.note}
+                                                onChange={(e) => setTempInputData({ ...tempInputData, note: e.target.value })}
+                                                onKeyPress={(e) => handleKeyPress(e, item.id)}
+                                            />) :
+                                            (<span onDoubleClick={() => handleEdit(item)}>{item.note}</span>)
+                                        }
+                                    </td>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
+                                        {editingId === item.id ?
+                                            (<div>
+                                                <DatePicker
+                                                    id="endDate"
+                                                    selected={tempInputData.endDate}
+                                                    onChange={(date) => setTempInputData({ ...tempInputData, endDate: date })}
+                                                    showTimeSelect
+                                                    dateFormat="Pp"
+                                                    className="form-control"
+                                                />
+                                                <label htmlFor="timezone" className="text-light">Timezone:</label>
+                                                <Select
+                                                    id="timezone"
+                                                    options={moment.tz.names().map(tz => ({ value: tz, label: tz }))}
+                                                    value={tempInputData.timezone}
+                                                    onChange={(timezone) => setTempInputData({ ...tempInputData, timezone: timezone })}
+                                                    className="basic-single text-dark"
+                                                    classNamePrefix="select"
+                                                />
+
+                                            </div>
+                                            ) :
+                                            (<span onDoubleClick={() => handleEdit(item)}>{item.end_date_render}</span>)
+                                        }
+                                    </td>
                                     <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{item.rest_day_render}</td>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
+                                        {editingId === item.id ?
+                                            (<div>
+                                                <Select
+                                                    id="timezone"
+                                                    options={status_options}
+                                                    value={tempInputData.timezone}
+                                                    onChange={(status) => setTempInputData({ ...tempInputData, status: status.value })}
+                                                    className="basic-single text-dark"
+                                                    classNamePrefix="select"
+                                                />
+                                            </div>
+                                            ) :
+                                            (<span onDoubleClick={() => handleEdit(item)}>{item.status}</span>)
+                                        }</td>
                                     <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                        <button onClick={() => handleRowDelete(item.id)} className="btn btn-sm btn-light text-center">
-                                            <FontAwesomeIcon icon={faTrashAlt} />
-                                        </button>
+                                        {editingId === item.id ?
+                                            (<div class="text-center mt-1">
+                                                <button onClick={() => saveEdit(item.id)} className="btn btn-light btn-sm">Save</button>
+                                                <button onClick={() => cancel()} className="btn btn-light btn-sm mt-3">Cancel</button>
+                                            </div>
+
+                                            ) :
+                                            (<button onClick={() => handleRowDelete(item.id)} className="btn btn-sm btn-light text-center">
+                                                <FontAwesomeIcon icon={faTrashAlt} />
+                                            </button>)
+                                        }
+
                                     </td>
                                 </tr>
                             ))}

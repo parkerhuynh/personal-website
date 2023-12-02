@@ -24,12 +24,11 @@ CREATE TABLE IF NOT EXISTS deadlines (
     id INT AUTO_INCREMENT       PRIMARY KEY,
     user_id INT                 NOT NULL,
     username VARCHAR(32)        NOT NULL,
-    start_date VARCHAR(32)         NOT NULL,
-    end_date VARCHAR(32)           NOT NULL,
+    end_date VARCHAR(32)        NOT NULL,
     notification INT            NOT NULL,
     objective  TEXT             NOT NULL,
     note   TEXT                 NOT NULL,
-    complete TINYINT(1)         NOT NULL,
+    status TEXT                 NOT NULL,
     timezone TEXT               NOT NULL,
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
