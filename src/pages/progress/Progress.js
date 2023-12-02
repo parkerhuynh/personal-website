@@ -116,7 +116,7 @@ const Progress = () => {
     };
     const groupedProgress = groupByDate(progress);
     const groupStripedStyle = (index) => ({
-        backgroundColor: index % 2 === 0 ? '#1B2631' : '', // Alternating color for even and odd groups
+        backgroundColor: index % 2 === 0 ? 'rgb(23, 32, 42, 0.5)' : 'rgb(52, 73, 94 , 0.5)', // Alternating color for even and odd groups
     });
 
 
@@ -176,6 +176,7 @@ const Progress = () => {
             console.error('Error updating progress:', error);
         }
     };
+    
     const handleKeyPress = async (e, itemId) => {
         console.log("Asdasd")
         if (e.key === 'Enter') {
