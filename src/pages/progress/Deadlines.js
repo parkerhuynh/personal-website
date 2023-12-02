@@ -4,7 +4,8 @@ import { useAuth } from "../../components/AuthContext";
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 import moment from 'moment-timezone';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import 'react-quill/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -100,7 +101,7 @@ const Progress = () => {
             objective: '',
             note: '',
             timezone: form.timezone,
-            
+
         });
     };
 
@@ -135,7 +136,7 @@ const Progress = () => {
             <div className="container">
                 <h2 className="text-light text-center pt-5 pb-3">Deadlines</h2>
                 <form onSubmit={handleSubmit}>
-                <div className="row">
+                    <div className="row">
                         <div className="col-md-6">
                             <label htmlFor="startDate" className="text-light me-3">Start Date:</label>
                             <DatePicker
@@ -218,30 +219,36 @@ const Progress = () => {
                     </div>
                 </form>
                 <div className="table py-4">
-                <table className="table table-dark table-bordered mt-4">
-                                <thead>
-                                    <tr>
-                                        <th class='text-center' scope="col" style={{ width: "50px" }}>ID</th>
-                                        <th class='text-center' scope="col" style={{ width: "150px" }}>Objective</th>
-                                        <th class='text-center' scope="col" >Description</th>
-                                        <th class='text-center' scope="col" style={{ width: "180px" }}>Deadline</th>
-                                        <th class='text-center' scope="col" style={{ width: "200px" }}>Times util Deadlines</th>
+                    <table className="table table-dark table-bordered mt-4">
+                        <thead>
+                            <tr>
+                                <th class='text-center' scope="col" style={{ width: "50px" }}>ID</th>
+                                <th class='text-center' scope="col" style={{ width: "150px" }}>Objective</th>
+                                <th class='text-center' scope="col" >Description</th>
+                                <th class='text-center' scope="col" style={{ width: "180px" }}>Deadline</th>
+                                <th class='text-center' scope="col" style={{ width: "170px" }}>Times util Deadlines</th>
+                                <th style={{ width: "40px" }} class='text-center' scope="col"></th>
 
 
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {deadlines.map((item, itemIndex) => (
-                                        <tr onDoubleClick={() => handleRowDelete(item.id)} key={itemIndex}>
-                                            <td class='text-center' >{itemIndex}</td>
-                                            <td class='text-center' >{item.objective}</td>
-                                            <td>{item.note}</td>
-                                            <td class='text-center' >{item.end_date}</td>
-                                            <td class='text-center' >{item.rest_day_render}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {deadlines.map((item, itemIndex) => (
+                                <tr key={itemIndex}>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{itemIndex + 1}</td>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{item.objective}</td>
+                                    <td>{item.note}</td>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{item.end_date_render}</td>
+                                    <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{item.rest_day_render}</td>
+                                    <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                        <button onClick={() => handleRowDelete(item.id)} className="btn btn-sm btn-light text-center">
+                                            <FontAwesomeIcon icon={faTrashAlt} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
