@@ -98,7 +98,7 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
         setEditingId(null);
     };
 
-
+    console.log(progress)
     return (
         <div>
             <div class="my-3" >
