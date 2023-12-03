@@ -32,8 +32,8 @@ export const useProgressData = (currentUser, dayhistory) => {
         data = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         data = data.map((item) => {
             const new_created_at_value = moment(item.created_at, "DD-MM-YYYY hh:mm:ss Z")
-            const date_render = `${new_created_at_value.format('ddd')}, ${new_created_at_value.format("YYYY-MM-DD")}`
-            const date = `${new_created_at_value.format("YYYY-MM-DD")}`
+            const date_render = `${new_created_at_value.format('ddd')}, ${new_created_at_value.format("DD-MM-YYYY")}`
+            const date = `${new_created_at_value.format("DD-MM-YYYY")}`
             const time = `${new_created_at_value.format("HH:mm:ss")}`
             return {
                 ...item,
