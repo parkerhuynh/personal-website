@@ -72,7 +72,6 @@ const Progress = () => {
             }));
         } else {
             quillInputHandel(e, (progress) => {
-                console.log(progress) // Assuming quillInputHandel accepts a callback
                 setInputData(prevInputData => ({
                     ...prevInputData,
                     progress: progress  // 'action' is the new value from ReactQuill, processed asynchronously

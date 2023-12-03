@@ -72,7 +72,6 @@ export const useProgressData = (currentUser, dayhistory) => {
 
     function quillInputHandel(action, callback) {
         // Check if the action string contains an <img> tag
-        console.log(action)
         if (action.includes("<img")) {
             // Create a new Image object
             let img = new Image();
@@ -86,7 +85,6 @@ export const useProgressData = (currentUser, dayhistory) => {
                 img.onload = function () {
                     let new_dimens = resizeImageToMaxDimension(img.width, img.height, 500);
                     let resizedAction = action.replace("<img", `<img width="${new_dimens.newWidth}" height="${new_dimens.newHeight}"`);
-                    console.log(resizedAction)
                     // Execute the callback function with the resized action
                     callback(resizedAction);
                 };
