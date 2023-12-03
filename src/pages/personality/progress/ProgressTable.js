@@ -11,6 +11,7 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
     const [editingId, setEditingId] = useState(null);
     const [tempInputData, setTempInputData] = useState();
     const [field, setField] = useState(null);
+    
     // Merge progresses have the same date
     const groupByDate = (progressArray) => {
         const groups = progressArray.reduce((acc, item) => {

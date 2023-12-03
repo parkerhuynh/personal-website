@@ -33,7 +33,7 @@ const Progress = () => {
     };
 
     const processProgressData = (data) => {
-        data = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        
         data = data.map((item) => {
             // console.log(item)
             var original_tz_end_date_st = moment.tz(`${item.end_date}`, "YYYY-MM-DD HH:mm", item.timezone).format()
@@ -53,7 +53,8 @@ const Progress = () => {
             var newdatatime =  moment(original_tz_end_date_st)
             
             newdatatime = newdatatime.subtract(differenceInHours, 'hours').utc().toDate()
-            // 
+            var today =  moment(new Date())
+            
             // console.log(differenceInHours)
             // console.log(currentTimeInTimezone)
             // console.log(newdatatime)
@@ -63,9 +64,11 @@ const Progress = () => {
                 end_date_render: current_tz_end_date.format('DD-MM-YYYY HH:mm'),
                 current_tz_end_date: current_tz_end_date,
                 newdatatime:newdatatime,
-                timezone: timezone
+                timezone: timezone,
+                expired:  current_tz_end_date.diff(today, 'days')
             };
         });
+        data = data.sort((a, b) => b.current_tz_end_date - a.current_tz_end_date)
         return data;
     };
 
@@ -154,6 +157,7 @@ const Progress = () => {
                     onDelete={handleDeadlineDelete} 
                     onDeadlineUpdate={handleDeadlineUpdate}
                     formatDeadline = {formatDeadline}
+                    setDeadlines = {setDeadlines}
                 />
             </div>
         </div>
