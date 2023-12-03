@@ -6,9 +6,11 @@ import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 
-const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline }) => {
+const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline, setDeadlines}) => {
     const [editingId, setEditingId] = useState(null);
     const [field, setField] = useState(null);
+    const [filterStatus, setfilterStatus] = useState('all');
+
     const init_temp = {
         endDate: new Date(),
         notification: '1',
@@ -27,14 +29,12 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
             note: item.note,
             newdatatime: item.newdatatime,
             timezone: item.timezone,
-            status: item.status,
-            notification: item.notification,
+            status: {value: item.status, label: item.status},
+            notification: {value: item.notification, label: item.notification},
             id: item.id
         })
     };
-    const rowStripedStyle = index => ({
-        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94, 0.5)',
-    });
+    
     const cancel = async () => {
         setEditingId(null);
     };
@@ -51,7 +51,10 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
             var jsonbody = tempInputData
             jsonbody.end_date = `${moment(jsonbody.newdatatime).format("YYYY-MM-DD HH:mm")}`
             jsonbody.timezone = jsonbody.timezone.value
-            console.log(jsonbody)
+            // console.log(jsonbody.status)
+            jsonbody.status = jsonbody.status.value
+            // console.log(jsonbody.notification)
+            jsonbody.notification = jsonbody.notification.value
             await axios.post(`/update_deadline/${itemId}`, jsonbody).then(async () => {
                 onDeadlineUpdate()
             }
@@ -69,8 +72,7 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
         { value: 'no status', label: 'no status' },
         { value: 'doing', label: 'doing' },
         { value: 'pending', label: 'pending' },
-        { value: 'doing', label: 'doing' },
-        { value: 'done!', label: 'done!' }
+        { value: 'done', label: 'done' }
     ]
     const customStyles = {
         control: (provided) => ({
@@ -95,7 +97,78 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
           height: '30px',
         }),
       };
+    
+    const rowStripedStyle = (item, index) => {
+        if (item.status == "done") {
+            return 'rgb(26, 188, 156, 0.5)'
+        }
+        if ((item.expired >=0) & (item.expired < item.notification)) {
+            return 'rgb(241, 196, 15 , 0.4)'
+        }
+        if (item.expired < 0) {
+            return 'rgb(169, 50, 38 , 0.4)'
+        }
+        if (index % 2 === 0) {
+            return 'rgb(0, 1, 2, 0.5)'
+        } else {
+            return 'rgb(52, 73, 94, 0.5)'
+        }
+    };
+    const notify_options = [1, 2, 3, 4, 5, 6, 7].map(day => (
+        {value: day, label: day}
+    ))
+    const handleSelectChange = (e) => {
+        const selectedValue = e.target.value;
+        setfilterStatus(selectedValue);
+    };
+
+    const filterData = deadlines.filter(item => {
+        
+        if (filterStatus === "all") {
+            return true
+        }
+
+        if (filterStatus == "expired"){
+            return item.expired < 0
+        }
+
+        if (filterStatus == "unexpired"){
+           
+            return item.expired >= 0
+        }
+        if (filterStatus == "doing"){
+           
+            return item.status == "doing"
+        }
+
+        if (filterStatus == "pending"){
+           
+            return item.status == "pending"
+        }
+        if (filterStatus == "done"){
+           
+            return item.status == "done"
+        }
+        if (filterStatus == "no status"){
+           
+            return item.status == "no status"
+        }
+    });
+
+    
     return (
+        <div>
+        <div class="my-3 col-3" >
+                <select value={filterStatus} onChange={handleSelectChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
+                    <option value="all">All</option>
+                    <option value="unexpired">Unexpired</option>
+                    <option value="expired">Expired</option>
+                    <option value="doing">Doing</option>
+                    <option value="done">Done</option>
+                    <option value="pending">Pending</option>
+                    <option value="no status">no status</option>
+                </select>
+            </div>
         <div className="table py-4">
             <table className="table table-dark table-bordered mt-4">
                 <thead>
@@ -105,15 +178,16 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
                         <th class='text-center' scope="col" >Description</th>
                         <th class='text-center' scope="col" style={{ width: "200px" }}>Deadline</th>
                         <th class='text-center' scope="col" style={{ width: "170px" }}>Times util Deadlines</th>
-                        <th class='text-center' scope="col" style={{ width: "100px" }}>Status</th>
+                        <th class='text-center' scope="col" style={{ width: "200px" }}>Status</th>
+                        <th class='text-center' scope="col" style={{ width: "90px" }}>Notify</th>
                         <th style={{ width: "90px" }} class='text-center' scope="col"></th>
 
 
                     </tr>
                 </thead>
                 <tbody>
-                    {deadlines.map((item, itemIndex) => (
-                        <tr key={itemIndex} style={rowStripedStyle(itemIndex)}>
+                    {filterData.map((item, itemIndex) => (
+                        <tr key={itemIndex} style={{backgroundColor : rowStripedStyle(item, itemIndex)}}>
                             <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{itemIndex + 1}</td>
                             <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
                                 {(editingId === item.id) & (field =="objective") ?
@@ -174,8 +248,8 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
                                         <Select
                                             id="timezone"
                                             options={status_options}
-                                            value={tempInputData.timezone}
-                                            onChange={(status) => setTempInputData({ ...tempInputData, status: status.value })}
+                                            value={tempInputData.status}
+                                            onChange={(status) => setTempInputData({ ...tempInputData, status: status })}
                                             className="basic-single text-dark"
                                             classNamePrefix="select"
                                             styles={customStyles}
@@ -185,6 +259,26 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
                                     ) :
                                     (<span onDoubleClick={() => handleEdit(item, "status")}>{item.status}</span>)
                                 }
+                            </td>
+                            <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                            {(editingId === item.id) & (field =="notify")  ?
+                                    (<div>
+                                        <Select
+                                            id="timezone"
+                                            options={notify_options}
+                                            value={tempInputData.notification}
+                                            onChange={(notify) => setTempInputData({ ...tempInputData, notification: notify})}
+                                            className="basic-single text-dark"
+                                            classNamePrefix="select"
+                                            styles={customStyles}
+                                            
+                                        />
+                                    </div>
+                                    ) :
+                                    (<span onDoubleClick={() => handleEdit(item, "notify")}>{item.notification}</span>)
+                                }
+
+
                             </td>
                             <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                 {editingId === item.id ?
@@ -203,6 +297,7 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline 
                     ))}
                 </tbody>
             </table>
+        </div>
         </div>
     );
 };
