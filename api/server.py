@@ -153,7 +153,7 @@ def get_progress(user_id, day):
         threshold_datetime = current_datetime_sydney - timedelta(days=int(day))
         results = results[results['created_at_temp'] > threshold_datetime]
 
-    results['created_at'] =results['created_at'].apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S %z"))
+    results['created_at'] =results['created_at'].apply(lambda x: x.strftime("%d-%m-%Y %H:%M:%S %z"))
     results = results.to_dict("records")
     return jsonify(results)
 
