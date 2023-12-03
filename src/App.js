@@ -5,9 +5,9 @@ import Home from './pages/Home';
 import { AuthProvider } from "./components/AuthContext"
 import Login from './components/Login';
 import Signup from './components/Signup';
-import Progress from './pages/progress/Progress';
+import Progress from './pages/personality/progress/Progress';
 import ForgotPassword from "./components/ForgotPassword"
-import Deadlines from './pages/progress/Deadlines';
+import Deadlines from './pages/personality/deadlines/Deadlines';
 
 const App = () => {
   return (

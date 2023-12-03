@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS progress (
     user_id INT                 NOT NULL,
     username VARCHAR(32)        NOT NULL,
     objective VARCHAR(1024)       NOT NULL,
-    progress VARCHAR(1024)       NOT NULL,
+    progress MEDIUMTEXT       NOT NULL,
     important TINYINT(1)        NOT NULL,
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS deadlines (
     note   TEXT                 NOT NULL,
     status TEXT                 NOT NULL,
     timezone TEXT               NOT NULL,
+    offset TEXT                 NOT NULL,
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
 
