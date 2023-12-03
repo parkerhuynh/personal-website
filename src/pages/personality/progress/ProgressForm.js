@@ -28,7 +28,6 @@ const ProgressForm = ({ inputData, handleSubmit, handleInputChange }) => {
         },
         formula: true,
     };
-    console.log(inputData)
 
     return (
         <div>
