@@ -70,6 +70,7 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
         formula: true,
     };
 
+
     const saveEdit = async (itemId) => {
         // Call backend API to save changes
         try {
@@ -97,11 +98,12 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
     const cancel = async () => {
         setEditingId(null);
     };
+    
     return (
         <div>
             <div class="my-3" >
                 <select value={dayhistory} onChange={handleSelectChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
-                    <option value="1">1 day</option>
+                    <option value="1">today</option>
                     <option value="2">2 days</option>
                     <option value="3">3 days</option>
                     <option value="4">4 days</option>
@@ -138,6 +140,7 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
                                             editingId === item.id & (field == "objective") ? (
                                                 <input
                                                     type="text"
+                                                    style={{ width: "150px" }}
                                                     value={tempInputData.objective}
                                                     onChange={(e) => setTempInputData({ ...tempInputData, objective: e.target.value })}
                                                     onKeyPress={(e) => handleKeyPress(e, item.id)}

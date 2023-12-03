@@ -186,40 +186,39 @@ def update_progress(progress_id):
 def add_deadline():
     data = request.json
     connection = make_conn()
-    end_date = data['endDate']
     with connection.cursor() as cursor:
         sql = "INSERT INTO deadlines (end_date, notification, objective, note, user_id, username, status, timezone, offset) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        values = (end_date, data['notification'], data['objective'], data['note'], data['user_id'], data['username'], "no status", data['timezone'], data['offset'])
+        values = (data['end_date'], data['notification'], data['objective'], data['note'], data['user_id'], data['username'], "no status", data['timezone'], data['offset'])
         cursor.execute(sql, values)
         connection.commit()
 
     return jsonify({'message': 'Deadline added successfully'}), 200
 
 
-@app.route('/get_deadlines/<user_id>/<offset>', methods=['POST','GET'])
-def get_deadlines(user_id, offset):
+@app.route('/get_deadlines/<user_id>', methods=['POST','GET'])
+def get_deadlines(user_id):
     connection = make_conn()
     with connection.cursor() as cursor:
         query = f"SELECT * FROM deadlines WHERE user_id = {user_id}"
-        
         cursor.execute(query)
     results = cursor.fetchall()
 
-    hours, minutes = map(int, offset.split(':'))
-    timezone = pytz.FixedOffset(hours * 60 + minutes)
-    current_time_in_timezone = datetime.now(timezone)
+    # hours, minutes = map(int, offset.split(':'))
+    # timezone = pytz.FixedOffset(hours * 60 + minutes)
+    # current_time_in_timezone = datetime.now(timezone)
 
-    for i in range(len(results)):
-        results[i]["original_end_date"] = datetime.strptime(results[i]["end_date"], '%Y-%m-%d %H:%M:%S %z')
-        results[i]["end_date"] = datetime.strptime(results[i]["end_date"], '%Y-%m-%d %H:%M:%S %z')
-        results[i]["end_date"] = results[i]["end_date"].astimezone(timezone)
-        days_until_given_date = (results[i]["end_date"] - current_time_in_timezone).days
-        results[i]["days_until_given_date"] = days_until_given_date
-        results[i]["rest_day_render"] = format_deadline(results[i]["end_date"], current_time_in_timezone)
-        results[i]["end_date_render"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S')
-        results[i]["end_date"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S %z')
-        results[i]["original_end_date"] = results[i]["original_end_date"].strftime('%d:%m:%Y %H:%M:%S %z')
+    # for i in range(len(results)):
+    #     results[i]["original_end_date"] = datetime.strptime(results[i]["end_date"], '%Y-%m-%d %H:%M:%S %z')
+    #     results[i]["end_date"] = datetime.strptime(results[i]["end_date"], '%Y-%m-%d %H:%M:%S %z')
+    #     results[i]["end_date"] = results[i]["end_date"].astimezone(timezone)
+    #     days_until_given_date = (results[i]["end_date"] - current_time_in_timezone).days
+    #     results[i]["days_until_given_date"] = days_until_given_date
+    #     results[i]["rest_day_render"] = format_deadline(results[i]["end_date"], current_time_in_timezone)
+    #     results[i]["end_date_render"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S')
+    #     results[i]["end_date"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S %z')
+    #     results[i]["original_end_date"] = results[i]["original_end_date"].strftime('%d:%m:%Y %H:%M:%S %z')
     return jsonify(results)
+
 
 @app.route('/delete_deadline/<int:row_id>', methods=['POST'])
 def delete_deadline(row_id):
@@ -239,7 +238,7 @@ def update_deadline(item_id):
         with connection.cursor() as cursor:
             sql = (
                 f"UPDATE deadlines SET "
-                f"end_date='{data['endDate']}', "
+                f"end_date='{data['end_date']}', "
                 f"notification={data['notification']}, "
                 f"objective='{data['objective']}', "
                 f"note='{data['note']}', "
