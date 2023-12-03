@@ -1,6 +1,6 @@
 import React, { useState, useEffect, CSSProperties } from 'react';
 import axios from 'axios';
-import { useAuth } from "../../components/AuthContext";
+import { useAuth } from "../../../components/AuthContext";
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 import moment from 'moment-timezone';
@@ -9,7 +9,7 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import 'react-quill/dist/quill.snow.css';
 import 'katex/dist/katex.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
-import "../../App.css";
+import "../../../App.css";
 
 const Progress = () => {
     const { currentUser } = useAuth();
@@ -35,21 +35,25 @@ const Progress = () => {
 
 
     const handleEdit = (item) => {
-        console.log(item)
-        const dateTimeWithZone = moment(item.original_end_date, "DD:MM:YYYY HH:mm:ss Z");
-        const offset = dateTimeWithZone.utcOffset();
-        const timezonesWithSameOffset = moment.tz.names().filter(tz => {
-            return moment.tz(tz).utcOffset() === offset;
-        });
-        
+        const orOffset = moment.tz(item.timezone).utcOffset();
+        const defOffset = moment.tz(moment.tz.guess()).utcOffset();
+
+        const datatime = moment(item.original_end_date, "DD:MM:YYYY hh:mm:ss Z")
+        const differenceInHours = (defOffset - orOffset) / 60;
+        const newdatatime = datatime.subtract(differenceInHours, 'hours')
+
+
+        console.log("Difference in hours:", newdatatime);
+
         setEditingId(item.id);
         setTempInputData({
-            endDate: moment(item.original_end_date, "DD:MM:YYYY HH:mm:ss Z").utc().toDate(),
+            endDate: moment(item.original_end_date, "DD:MM:YYYY hh:mm:ss Z").utc().toDate(),
+            // endDate: initialDate,
             endDate_str: item.original_end_date,
             notification: item.notification,
             objective: item.objective,
             note: item.note,
-            timezone: { value: timezonesWithSameOffset[0], label: timezonesWithSameOffset[0] },
+            timezone: { value: item.timezone, label: item.timezone },
             status: item.status
         });
     };
@@ -99,7 +103,8 @@ const Progress = () => {
             endDate: formatDate(form.endDate, form.timezone.value),
             user_id: userInfo.id,
             username: userInfo.username,
-            timezone: moment().tz(form.timezone.value).format('Z')
+            offset: moment().tz(form.timezone.value).format('Z'),
+            timezone: form.timezone.value
         };
 
         try {
@@ -157,7 +162,7 @@ const Progress = () => {
         );
     }
     const rowStripedStyle = (index) => ({
-        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.4)' : 'rgb(52, 73, 94 , 0.5)', // Alternating color for even and odd groups
+        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94 , 0.5)', // Alternating color for even and odd groups
     });
 
     const handleKeyPress = async (e, itemId) => {
@@ -173,7 +178,8 @@ const Progress = () => {
             tempInputData.endDate = formatDate(tempInputData.endDate, tempInputData.timezone.value)
             // tempInputData.status = tempInputData.status.value
 
-            tempInputData.timezone = moment().tz(tempInputData.timezone.value).format('Z')
+            tempInputData.offset = moment().tz(tempInputData.timezone.value).format('Z')
+            tempInputData.timezone = tempInputData.timezone.value
             await axios.post(`/update_deadline/${itemId}`, tempInputData).then(async () => {
                 fetchUserDeadlines(userInfo.id)
             }
