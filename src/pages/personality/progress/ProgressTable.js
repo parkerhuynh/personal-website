@@ -123,7 +123,7 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
                             <th style={{ width: "100px" }} class='text-center' scope="col">Time</th>
                             <th style={{ width: "180px" }} class='text-center' scope="col">Objective</th>
                             <th class='text-center' scope="col">Progress</th>
-                            <th style={{ width: "40px" }} class='text-center' scope="col"></th>
+                            <th style={{ width: "90px" }} class='text-center' scope="col"></th>
                         </tr>
                     </thead>
                     <tbody>
