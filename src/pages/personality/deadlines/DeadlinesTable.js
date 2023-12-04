@@ -6,7 +6,7 @@ import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 
-const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline, setDeadlines }) => {
+const DeadlinesTable = ({ deadlines, onDelete, formatDeadline, processItem, setDeadlines }) => {
     const [editingId, setEditingId] = useState(null);
     const [field, setField] = useState(null);
     const [filterStatus, setfilterStatus] = useState('all');
@@ -56,8 +56,18 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
             jsonbody.status = jsonbody.status.value
             // console.log(jsonbody.notification)
             jsonbody.notification = jsonbody.notification.value
+            const update_deadlines = deadlines
+            const index = deadlines.findIndex(deadline => deadline.id === jsonbody.id);
+            if (index !== -1) {
+                update_deadlines[index] = processItem(jsonbody)
+                
+            }
+            setDeadlines(update_deadlines)
+
+            
+
             await axios.post(`/update_deadline/${itemId}`, jsonbody).then(async () => {
-                onDeadlineUpdate()
+                // onDeadlineUpdate()
             }
             )
 
@@ -158,7 +168,6 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
             return item.expired >= 0
         }
         else if (item.status == filterStatus) {
-
             return true
         }
         

@@ -33,45 +33,41 @@ const Progress = () => {
     };
 
     const processProgressData = (data) => {
-        
+
         data = data.map((item) => {
-            // console.log(item)
-            var original_tz_end_date_st = moment.tz(`${item.end_date}`, "YYYY-MM-DD HH:mm", item.timezone).format()
-            
-            const current_tz_end_date = moment(original_tz_end_date_st)
-            // console.log(current_tz_end_date.format())
-            const timezone = {value: item.timezone, label: item.timezone}
-
-
-            // console.log(original_tz_end_date_st)
-            // console.log(current_tz_end_date)
-            
-            const orOffset = moment.tz(item.timezone).utcOffset();
-            const defOffset = moment.tz(moment.tz.guess()).utcOffset();
-            const differenceInHours = (defOffset - orOffset) / 60;
-            
-            var newdatatime =  moment(original_tz_end_date_st)
-            
-            newdatatime = newdatatime.subtract(differenceInHours, 'hours').utc().toDate()
-            var today =  moment(new Date())
-            
-            // console.log(differenceInHours)
-            // console.log(currentTimeInTimezone)
-            // console.log(newdatatime)
-            
-            return {
-                ...item,
-                end_date_render: current_tz_end_date.format('DD-MM-YYYY HH:mm'),
-                current_tz_end_date: current_tz_end_date,
-                newdatatime:newdatatime,
-                timezone: timezone,
-                expired:  current_tz_end_date.diff(today, 'days')
-            };
+            const newItem = processItem(item)
+            return newItem
         });
         data = data.sort((a, b) => b.current_tz_end_date - a.current_tz_end_date)
         return data;
     };
 
+    const processItem = (item) => {
+        var original_tz_end_date_st = moment.tz(`${item.end_date}`, "YYYY-MM-DD HH:mm", item.timezone).format()
+        const current_tz_end_date = moment(original_tz_end_date_st)
+        // console.log(current_tz_end_date.format())
+        const timezone = { value: item.timezone, label: item.timezone }
+        // console.log(original_tz_end_date_st)
+        // console.log(current_tz_end_date)
+        const orOffset = moment.tz(item.timezone).utcOffset();
+        const defOffset = moment.tz(moment.tz.guess()).utcOffset();
+        const differenceInHours = (defOffset - orOffset) / 60;
+
+        var newdatatime = moment(original_tz_end_date_st)
+
+        newdatatime = newdatatime.subtract(differenceInHours, 'hours').utc().toDate()
+        var today = moment(new Date())
+        const newItem = {
+            ...item,
+            end_date_render: current_tz_end_date.format('DD-MM-YYYY HH:mm'),
+            current_tz_end_date: current_tz_end_date,
+            newdatatime: newdatatime,
+            timezone: timezone,
+            expired: current_tz_end_date.diff(today, 'days')
+        }
+        // console.log(newItem)
+        return newItem
+    };
     // console.log(deadlines)
 
     const handleDeadlineUpdate = async () => {
@@ -83,7 +79,9 @@ const Progress = () => {
     const handleDeadlineDelete = async (id) => {
         try {
             await axios.post(`/delete_deadline/${id}`);
-            fetchDeadlines(userInfo.id);
+            const updatedExamples = deadlines.filter(item => item.id !== id);
+            setDeadlines(updatedExamples)
+            // fetchDeadlines(userInfo.id);
         } catch (error) {
             console.error('Error deleting deadline:', error);
             // Implement user-friendly error handling here
@@ -92,12 +90,12 @@ const Progress = () => {
     function formatDeadline(deadline, currentTimeInTimezone) {
         const diffMs = deadline - currentTimeInTimezone;
         const diff = new Date(diffMs);
-    
+
         // Constants
         const oneDayMs = 24 * 60 * 60 * 1000;
         const oneWeekMs = 7 * oneDayMs;
         const oneMonthMs = 30 * oneDayMs;
-    
+
         // If the deadline has passed
         if (diffMs < 0) {
             const sinceDeadline = Math.abs(diffMs);
@@ -113,7 +111,7 @@ const Progress = () => {
                 return `Expired ${months} month${months > 1 ? 's' : ''} and ${days} day${days > 1 ? 's' : ''} ago`;
             }
         }
-    
+
         // If the deadline is in the future
         else {
             if (diffMs > oneMonthMs) {
@@ -152,12 +150,12 @@ const Progress = () => {
             <div className="container">
                 <h2 className="text-light text-center pt-5 pb-3">Deadlines</h2>
                 <DeadlineForm userInfo={userInfo} onDeadlineUpdate={handleDeadlineUpdate} />
-                <DeadlinesTable 
-                    deadlines={deadlines} 
-                    onDelete={handleDeadlineDelete} 
-                    onDeadlineUpdate={handleDeadlineUpdate}
-                    formatDeadline = {formatDeadline}
-                    setDeadlines = {setDeadlines}
+                <DeadlinesTable
+                    deadlines={deadlines}
+                    onDelete={handleDeadlineDelete}
+                    formatDeadline={formatDeadline}
+                    setDeadlines={setDeadlines}
+                    processItem={processItem}
                 />
             </div>
         </div>
