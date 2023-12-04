@@ -129,31 +129,33 @@ def add_progress():
         connection.commit()
         return jsonify({"message": "Progress added successfully"}), 200
     
-@app.route('/get_progress/<user_id>/<day>', methods=['POST','GET'])
-def get_progress(user_id, day):
+@app.route('/get_progress/<user_id>', methods=['POST','GET'])
+def get_progress(user_id):
     connection = make_conn()
     with connection.cursor() as cursor:
         query = f"SELECT * FROM progress WHERE user_id = {user_id}"
         cursor.execute(query)
     results = cursor.fetchall()
+    if len(results) == 0:
+        return jsonify([])
+    print(results)
     results = pd.DataFrame(results)
-    print(results['created_at'] )
-    print("-----------------------")
     results['created_at'] = results['created_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
-    results['created_at'] = results['created_at'].map(day_process)
-    print("-----------------------")
-    print(results['created_at'] )
+    print(results)
+    # results['created_at'] = results['created_at'].map(day_process)
+    # print("-----------------------")
+    # print(results['created_at'] )
     
 
-    if day != "all":
-        results['created_at_temp'] = results['created_at'].dt.date
-        sydney_timezone = pytz.timezone('Australia/Sydney')
-        current_datetime_sydney = datetime.now(sydney_timezone).date()
+    # if day != "all":
+    #     results['created_at_temp'] = results['created_at'].dt.date
+    #     sydney_timezone = pytz.timezone('Australia/Sydney')
+    #     current_datetime_sydney = datetime.now(sydney_timezone).date()
 
-        threshold_datetime = current_datetime_sydney - timedelta(days=int(day))
-        results = results[results['created_at_temp'] > threshold_datetime]
+    #     threshold_datetime = current_datetime_sydney - timedelta(days=int(day))
+    #     results = results[results['created_at_temp'] > threshold_datetime]
 
-    results['created_at'] =results['created_at'].apply(lambda x: x.strftime("%d-%m-%Y %H:%M:%S %z"))
+    # results['created_at'] =results['created_at'].apply(lambda x: x.strftime("%d-%m-%Y %H:%M:%S %z"))
     results = results.to_dict("records")
     return jsonify(results)
 
