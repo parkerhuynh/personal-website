@@ -7,11 +7,13 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 
-const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, fetchUserData, setProgress, quillInputHandel }) => {
+const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, quillInputHandel }) => {
     const [editingId, setEditingId] = useState(null);
     const [tempInputData, setTempInputData] = useState();
     const [field, setField] = useState(null);
-    
+    const [filterObjective, setFilterObjective] = useState("all");
+    const [dayhistory, setdayhistory] = useState(3);
+
     // Merge progresses have the same date
     const groupByDate = (progressArray) => {
         const groups = progressArray.reduce((acc, item) => {
@@ -31,14 +33,20 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
         });
     };
 
-    const groupedProgress = groupByDate(progress);
-    const groupStripedStyle = (index) => ({
-        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94 , 0.5)'
-    });
+    const objectives = progress.map(example => example.objective);
+    const uniqueObjectivesSet = new Set(objectives);
+    const uniqueObjectives = [...uniqueObjectivesSet];
+    uniqueObjectives.unshift('all')
+    
     const handleSelectChange = (e) => {
         const selectedValue = e.target.value;
         setdayhistory(selectedValue);
         fetchUserData()
+    };
+
+    const handleSelectObjectiveChange = (e) => {
+        const selectedValue = e.target.value;
+        setFilterObjective(selectedValue);
     };
     const handleEdit = (item, editfield) => {
         setField(editfield)
@@ -99,23 +107,59 @@ const ProgressTable = ({ progress, handleRowDelete, dayhistory, setdayhistory, f
     const cancel = async () => {
         setEditingId(null);
     };
-    
+
+    var filterData = progress.filter(item => {
+        
+        if (filterObjective === "all") {
+            return true
+        } else if (item.objective == filterObjective) {
+            return true
+        }
+    });
+
+    filterData = filterData.filter(item => {
+        
+        if (dayhistory === "all") {
+            return true
+        } else if (item.gap < dayhistory) {
+            return true
+        }
+    });
+
+    const groupedProgress = groupByDate(filterData);
+    const groupStripedStyle = (index) => ({
+        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94 , 0.5)'
+    });
+
+
     return (
         <div>
-            <div class="my-3" >
-                <select value={dayhistory} onChange={handleSelectChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
-                    <option value="1">today</option>
-                    <option value="2">2 days</option>
-                    <option value="3">3 days</option>
-                    <option value="4">4 days</option>
-                    <option value="5">5 days</option>
-                    <option value="6">6 days</option>
-                    <option value="7">1 week</option>
-                    <option value="14">2 weeks</option>
-                    <option value="30">1 month</option>
-                    <option value="all">All</option>
-                </select>
+            <div class="row">
+                <div class="my-3 col-3" >
+                    <select value={dayhistory} onChange={handleSelectChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
+                        <option value="1">today</option>
+                        <option value="2">2 days</option>
+                        <option value="3">3 days</option>
+                        <option value="4">4 days</option>
+                        <option value="5">5 days</option>
+                        <option value="6">6 days</option>
+                        <option value="7">1 week</option>
+                        <option value="14">2 weeks</option>
+                        <option value="30">1 month</option>
+                        <option value="all">All</option>
+                    </select>
+
+                </div>
+                <div class="my-3 col-2" >
+                    <select value={filterObjective} onChange={handleSelectObjectiveChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
+                        {uniqueObjectives.map(objective => (
+                            <option value={objective}>{objective}</option>
+                        ))}
+                    </select>
+                </div>
+
             </div>
+
             <div className="table-responsive">
                 <table className="table table-dark table-bordered mt-4">
                     <thead>

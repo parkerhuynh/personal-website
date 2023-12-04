@@ -11,9 +11,7 @@ window.katex = katex;
 const Progress = () => {
     const { currentUser } = useAuth();
     const [inputData, setInputData] = useState({ objective: '', progress: '' });
-
-    const [dayhistory, setdayhistory] = useState(3);
-    const { userInfo, progress, setProgress, fetchUserData, isLoading, quillInputHandel } = useProgressData(currentUser, dayhistory);
+    const { userInfo, progress, setProgress, fetchUserData, isLoading, quillInputHandel } = useProgressData(currentUser);
 
 
 
@@ -107,8 +105,6 @@ const Progress = () => {
 
                                 <ProgressTable progress={progress}
                                     handleRowDelete={handleRowDelete}
-                                    dayhistory={dayhistory}
-                                    setdayhistory={setdayhistory}
                                     fetchUserData={fetchUserData}
                                     setProgress={setProgress}
                                     quillInputHandel={quillInputHandel}
