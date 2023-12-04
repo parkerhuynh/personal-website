@@ -39,16 +39,21 @@ export const useProgressData = (currentUser) => {
 
             var newdatatime =  moment(current_tz_date)
             var today =  moment(new Date().date)
-            console.log(today)
-            // const differenceInHours = (defOffset - orOffset) / 60;
-            console.log(today.diff(newdatatime, 'days'))
+
+            const date1 = moment("2023-04-01 23:30:00", "YYYY-MM-DD HH:mm:ss").startOf('day');
+            const date2 = moment("2023-04-03 01:00:00", "YYYY-MM-DD HH:mm:ss").startOf('day');
+
+            // Calculate the difference in days
+            const diffInDays = date2.diff(date1, 'days');
+
+            console.log(`The difference in dates is ${diffInDays} days.`);
             return {
                 ...item,
                 created_at: current_tz_date,
                 date: date,
                 time: time,
                 date_render: date_render,
-                gap:  Math.floor(today.diff(newdatatime, 'days'))
+                gap:  today.diff(newdatatime, 'days')
             };
         });
         return data;
