@@ -176,9 +176,9 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
                         <th class='text-center' scope="col" style={{ width: "50px" }}>ID</th>
                         <th class='text-center' scope="col" style={{ width: "150px" }}>Objective</th>
                         <th class='text-center' scope="col" >Description</th>
-                        <th class='text-center' scope="col" style={{ width: "200px" }}>Deadline</th>
+                        <th class='text-center' scope="col" style={{ width: "150px" }}>Deadline</th>
                         <th class='text-center' scope="col" style={{ width: "170px" }}>Times util Deadlines</th>
-                        <th class='text-center' scope="col" style={{ width: "200px" }}>Status</th>
+                        <th class='text-center' scope="col" style={{ width: "120px" }}>Status</th>
                         <th class='text-center' scope="col" style={{ width: "90px" }}>Notify</th>
                         <th style={{ width: "90px" }} class='text-center' scope="col"></th>
 

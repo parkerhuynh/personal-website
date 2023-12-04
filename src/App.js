@@ -8,6 +8,7 @@ import Signup from './components/Signup';
 import Progress from './pages/personality/progress/Progress';
 import ForgotPassword from "./components/ForgotPassword"
 import Deadlines from './pages/personality/deadlines/Deadlines';
+import Scheduler from './pages/personality/scheduler/scheduler';
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
           <Route path="/progress" element={<Progress />} />
           <Route path="/deadlines" element={<Deadlines />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/scheduler" element={<Scheduler />} />
           
         </Route>
       </Routes>

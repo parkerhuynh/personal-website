@@ -6,6 +6,10 @@ export const menuItems_login = [
   {
     title: 'Deadlines',
     url: 'deadlines'
+  },
+  {
+    title: 'Scheduler',
+    url: 'scheduler'
   }
 ]
 
