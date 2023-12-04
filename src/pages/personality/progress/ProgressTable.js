@@ -14,6 +14,7 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
     const [filterObjective, setFilterObjective] = useState("all");
     const [dayhistory, setdayhistory] = useState(3);
 
+
     // Merge progresses have the same date
     const groupByDate = (progressArray) => {
         const groups = progressArray.reduce((acc, item) => {
@@ -33,11 +34,8 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
         });
     };
 
-    const objectives = progress.map(example => example.objective);
-    const uniqueObjectivesSet = new Set(objectives);
-    const uniqueObjectives = [...uniqueObjectivesSet];
-    uniqueObjectives.unshift('all')
     
+
     const handleSelectChange = (e) => {
         const selectedValue = e.target.value;
         setdayhistory(selectedValue);
@@ -48,6 +46,7 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
         const selectedValue = e.target.value;
         setFilterObjective(selectedValue);
     };
+
     const handleEdit = (item, editfield) => {
         setField(editfield)
         setTempInputData({ objective: "", progress: "" });
@@ -55,30 +54,6 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
         setTempInputData({ objective: item.objective, progress: item.progress });
 
     };
-    const modules = {
-        toolbar: [
-            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-            [{ 'size': [] }],
-            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-            [
-                {
-                    color: ["red", "blue", "yellow"],
-                },
-            ],
-            ['code-block', 'image'],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' },
-            { 'indent': '-1' }, { 'indent': '+1' }],
-            ['link'],
-            ['formula'],
-
-        ],
-        clipboard: {
-            // Extend clipboard module to handle mixed content better
-            matchVisual: false,
-        },
-        formula: true,
-    };
-
 
     const saveEdit = async (itemId) => {
         // Call backend API to save changes
@@ -108,8 +83,12 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
         setEditingId(null);
     };
 
+    const groupStripedStyle = (index) => ({
+        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94 , 0.5)'
+    });
+
     var filterData = progress.filter(item => {
-        
+
         if (filterObjective === "all") {
             return true
         } else if (item.objective == filterObjective) {
@@ -118,7 +97,7 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
     });
 
     filterData = filterData.filter(item => {
-        
+
         if (dayhistory === "all") {
             return true
         } else if (item.gap < dayhistory) {
@@ -127,9 +106,34 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
     });
 
     const groupedProgress = groupByDate(filterData);
-    const groupStripedStyle = (index) => ({
-        backgroundColor: index % 2 === 0 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94 , 0.5)'
-    });
+    const objectives = progress.map(example => example.objective);
+    const uniqueObjectivesSet = new Set(objectives);
+    const uniqueObjectives = [...uniqueObjectivesSet];
+    uniqueObjectives.unshift('all')
+
+    const modules = {
+        toolbar: [
+            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+            [{ 'size': [] }],
+            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+            [
+                {
+                    color: ["red", "blue", "yellow"],
+                },
+            ],
+            ['code-block', 'image'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' },
+            { 'indent': '-1' }, { 'indent': '+1' }],
+            ['link'],
+            ['formula'],
+
+        ],
+        clipboard: {
+            // Extend clipboard module to handle mixed content better
+            matchVisual: false,
+        },
+        formula: true,
+    };
 
 
     return (
@@ -148,7 +152,6 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
                         <option value="30">1 month</option>
                         <option value="all">All</option>
                     </select>
-
                 </div>
                 <div class="my-3 col-2" >
                     <select value={filterObjective} onChange={handleSelectObjectiveChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
@@ -157,7 +160,6 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
                         ))}
                     </select>
                 </div>
-
             </div>
 
             <div className="table-responsive">
@@ -196,7 +198,6 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
                                             )
                                         }
                                     </td>
-
                                     <td style={{ verticalAlign: 'middle', textAlign: 'left' }}>
                                         {
                                             (editingId === item.id) ? (
@@ -220,8 +221,6 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
                                                 <div onDoubleClick={() => handleEdit(item, "progress")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.progress) }} />
                                             )}
                                     </td>
-
-
                                     <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                         {(editingId === item.id) ?
                                             (<div class="text-center mt-1">

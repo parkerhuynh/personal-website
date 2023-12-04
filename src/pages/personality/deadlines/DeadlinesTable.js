@@ -6,10 +6,11 @@ import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 
-const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline, setDeadlines}) => {
+const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline, setDeadlines }) => {
     const [editingId, setEditingId] = useState(null);
     const [field, setField] = useState(null);
     const [filterStatus, setfilterStatus] = useState('all');
+    const [filterObjective, setFilterObjective] = useState("all");
 
     const init_temp = {
         endDate: new Date(),
@@ -20,7 +21,6 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
     }
     const [tempInputData, setTempInputData] = useState(init_temp);
 
-
     const handleEdit = (item, editfield) => {
         setEditingId(item.id);
         setField(editfield)
@@ -29,23 +29,22 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
             note: item.note,
             newdatatime: item.newdatatime,
             timezone: item.timezone,
-            status: {value: item.status, label: item.status},
-            notification: {value: item.notification, label: item.notification},
+            status: { value: item.status, label: item.status },
+            notification: { value: item.notification, label: item.notification },
             id: item.id
         })
     };
 
-    
-    
     const cancel = async () => {
         setEditingId(null);
     };
+
     const handleKeyPress = async (e, itemId) => {
         if (e.key === 'Enter') {
-            // Save changes and exit edit mode
             await saveEdit(itemId);
         }
     };
+
     const saveEdit = async (itemId) => {
         try {
             // Update local state first
@@ -69,42 +68,46 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
             console.error('Error updating deadline:', error);
         }
     };
-    const currentTimeInTimezone = new Date()
-    const status_options = [
-        { value: 'no status', label: 'no status' },
-        { value: 'doing', label: 'doing' },
-        { value: 'pending', label: 'pending' },
-        { value: 'done', label: 'done' }
-    ]
+    
     const customStyles = {
         control: (provided) => ({
-          ...provided,
-          minHeight: '30px',
-          height: '30px',
+            ...provided,
+            minHeight: '30px',
+            height: '30px',
         }),
         valueContainer: (provided) => ({
-          ...provided,
-          height: '30px',
-          padding: '0 6px'
+            ...provided,
+            height: '30px',
+            padding: '0 6px'
         }),
         input: (provided) => ({
-          ...provided,
-          margin: '0px',
+            ...provided,
+            margin: '0px',
         }),
         indicatorSeparator: () => ({
-          display: 'none',
+            display: 'none',
         }),
         indicatorsContainer: (provided) => ({
-          ...provided,
-          height: '30px',
+            ...provided,
+            height: '30px',
         }),
-      };
-    
+    };
+
+    const handleSelectChange = (e) => {
+        const selectedValue = e.target.value;
+        setfilterStatus(selectedValue);
+    };
+
+    const handleSelectObjectiveChange = (e) => {
+        const selectedValue = e.target.value;
+        setFilterObjective(selectedValue);
+    };
+
     const rowStripedStyle = (item, index) => {
         if (item.status == "done") {
             return 'rgb(26, 188, 156, 0.5)'
         }
-        if ((item.expired >=0) & (item.expired < item.notification)) {
+        if ((item.expired >= 0) & (item.expired < item.notification)) {
             return 'rgb(241, 196, 15 , 0.4)'
         }
         if (item.expired < 0) {
@@ -116,190 +119,214 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
             return 'rgb(52, 73, 94, 0.5)'
         }
     };
-    const notify_options = [1, 2, 3, 4, 5, 6, 7].map(day => (
-        {value: day, label: day}
-    ))
-    const handleSelectChange = (e) => {
-        const selectedValue = e.target.value;
-        setfilterStatus(selectedValue);
-    };
 
-    const filterData = deadlines.filter(item => {
-        
+    const notify_options = [1, 2, 3, 4, 5, 6, 7].map(day => (
+        { value: day, label: day }
+    ))
+
+    const status_options = [
+        { value: 'no status', label: 'no status' },
+        { value: 'doing', label: 'doing' },
+        { value: 'pending', label: 'pending' },
+        { value: 'done', label: 'done' }
+    ]
+
+    const objectives = deadlines.map(example => example.objective);
+    const uniqueObjectivesSet = new Set(objectives);
+    const uniqueObjectives = [...uniqueObjectivesSet];
+    uniqueObjectives.unshift('all')
+    const currentTimeInTimezone = new Date()
+
+    var filterData = deadlines.filter(item => {
+
         if (filterStatus === "all") {
             return true
         }
 
-        if (filterStatus == "expired"){
+        if (filterStatus == "expired") {
             return item.expired < 0
         }
 
-        if (filterStatus == "unexpired"){
-           
+        if (filterStatus == "unexpired") {
+
             return item.expired >= 0
         }
-        if (filterStatus == "doing"){
-           
+        if (filterStatus == "doing") {
+
             return item.status == "doing"
         }
 
-        if (filterStatus == "pending"){
-           
+        if (filterStatus == "pending") {
+
             return item.status == "pending"
         }
-        if (filterStatus == "done"){
-           
+        if (filterStatus == "done") {
+
             return item.status == "done"
         }
-        if (filterStatus == "no status"){
-           
+        if (filterStatus == "no status") {
+
             return item.status == "no status"
         }
     });
 
-    
+    filterData = filterData.filter(item => {
+
+        if (filterObjective === "all") {
+            return true
+        } else if (item.objective == filterObjective) {
+            return true
+        }
+    });
+
     return (
         <div>
-        <div class="my-3 col-3" >
-                <select value={filterStatus} onChange={handleSelectChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
-                    <option value="all">All</option>
-                    <option value="unexpired">Unexpired</option>
-                    <option value="expired">Expired</option>
-                    <option value="doing">Doing</option>
-                    <option value="done">Done</option>
-                    <option value="pending">Pending</option>
-                    <option value="no status">no status</option>
-                </select>
+            <div class="row">
+                <div class="my-3 col-3" >
+                    <select value={filterStatus} onChange={handleSelectChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
+                        <option value="all">All</option>
+                        <option value="unexpired">Unexpired</option>
+                        <option value="expired">Expired</option>
+                        <option value="doing">Doing</option>
+                        <option value="done">Done</option>
+                        <option value="pending">Pending</option>
+                        <option value="no status">no status</option>
+                    </select>
+                </div>
+
+                <div class="my-3 col-3" >
+                    <select value={filterObjective} onChange={handleSelectObjectiveChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
+                        {uniqueObjectives.map(objective => (
+                            <option value={objective}>{objective}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
-        <div className="table py-4">
-            <table className="table table-dark table-bordered mt-4">
-                <thead>
-                    <tr>
-                        <th class='text-center' scope="col" style={{ width: "50px" }}>ID</th>
-                        <th class='text-center' scope="col" style={{ width: "150px" }}>Objective</th>
-                        <th class='text-center' scope="col" >Description</th>
-                        <th class='text-center' scope="col" style={{ width: "150px" }}>Deadline</th>
-                        <th class='text-center' scope="col" style={{ width: "170px" }}>Times util Deadlines</th>
-                        <th class='text-center' scope="col" style={{ width: "120px" }}>Status</th>
-                        <th class='text-center' scope="col" style={{ width: "90px" }}>Notify</th>
-                        <th style={{ width: "90px" }} class='text-center' scope="col"></th>
 
-
-                    </tr>
-                </thead>
-                <tbody>
-                    {filterData.map((item, itemIndex) => (
-                        <tr key={itemIndex} style={{backgroundColor : rowStripedStyle(item, itemIndex)}}>
-                            <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{itemIndex + 1}</td>
-                            <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
-                                {(editingId === item.id) & (field =="objective") ?
-                                    (<input
-                                        style={{ width: "120px" }}
-                                        type="text"
-                                        value={tempInputData.objective}
-                                        onChange={(e) => setTempInputData({ ...tempInputData, objective: e.target.value })}
-                                        onKeyPress={(e) => handleKeyPress(e, item.id)}
-                                    />) :
-                                    (<span onDoubleClick={() => handleEdit(item, "objective")}>{item.objective}</span>)
-                                }
-                            </td>
-                            <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                {(editingId === item.id) & (field =="description") ?
-                                    (<input
-                                        style={{ width: "95%" }}
-                                        type="text"
-                                        value={tempInputData.note}
-                                        onChange={(e) => setTempInputData({ ...tempInputData, note: e.target.value })}
-                                        onKeyPress={(e) => handleKeyPress(e, item.id)}
-                                    />) :
-                                    (<span onDoubleClick={() => handleEdit(item, "description")}>{item.note}</span>)
-                                }
-                            </td>
-                            <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
-                                {(editingId === item.id) & (field =="date") ?
-                                    (<div>
-                                        <DatePicker
-                                            id="endDate"
-                                            selected={tempInputData.newdatatime}
-                                            onChange={(date) => setTempInputData({ ...tempInputData, newdatatime: date })}
-                                            showTimeSelect
-                                            dateFormat="Pp"
-                                            className="form-control"
-                                            style={{height: "10px", "font-size":"10px", padding: "5px"}}
-                                        />
-                                        <label htmlFor="timezone" className="text-light">Timezone:</label>
-                                        <Select
-                                            id="timezone"
-                                            options={moment.tz.names().map(tz => ({ value: tz, label: tz }))}
-                                            value={tempInputData.timezone}
-                                            onChange={(timezone) => setTempInputData({ ...tempInputData, timezone: timezone })}
-                                            className="basic-single text-dark"
-                                            classNamePrefix="select"
-                                            styles={customStyles}
-                                        />
-
-                                    </div>
-                                    ) :
-                                    (<span onDoubleClick={() => handleEdit(item, "date")}>{item.end_date_render}</span>)
-                                }
-                            </td>
-                            <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{formatDeadline(item.current_tz_end_date, currentTimeInTimezone)}</td>
-                            <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
-                                {(editingId === item.id) & (field =="status")  ?
-                                    (<div>
-                                        <Select
-                                            id="timezone"
-                                            options={status_options}
-                                            value={tempInputData.status}
-                                            onChange={(status) => setTempInputData({ ...tempInputData, status: status })}
-                                            className="basic-single text-dark"
-                                            classNamePrefix="select"
-                                            styles={customStyles}
-                                            
-                                        />
-                                    </div>
-                                    ) :
-                                    (<span onDoubleClick={() => handleEdit(item, "status")}>{item.status}</span>)
-                                }
-                            </td>
-                            <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                            {(editingId === item.id) & (field =="notify")  ?
-                                    (<div>
-                                        <Select
-                                            id="timezone"
-                                            options={notify_options}
-                                            value={tempInputData.notification}
-                                            onChange={(notify) => setTempInputData({ ...tempInputData, notification: notify})}
-                                            className="basic-single text-dark"
-                                            classNamePrefix="select"
-                                            styles={customStyles}
-                                            
-                                        />
-                                    </div>
-                                    ) :
-                                    (<span onDoubleClick={() => handleEdit(item, "notify")}>{item.notification}</span>)
-                                }
-
-
-                            </td>
-                            <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                {editingId === item.id ?
-                                    (<div class="text-center mt-1">
-                                        <button onClick={() => saveEdit(item.id)} className="btn btn-light btn-sm">Save</button>
-                                        <button onClick={() => cancel()} className="btn btn-light btn-sm mt-3">Cancel</button>
-                                    </div>
-                                    ) :
-                                    (<button onClick={() => onDelete(item.id)} className="btn btn-sm btn-light text-center">
-                                        <FontAwesomeIcon icon={faTrashAlt} />
-                                    </button>)
-                                }
-
-                            </td>
+            <div className="table py-4">
+                <table className="table table-dark table-bordered mt-4">
+                    <thead>
+                        <tr>
+                            <th class='text-center' scope="col" style={{ width: "50px" }}>ID</th>
+                            <th class='text-center' scope="col" style={{ width: "150px" }}>Objective</th>
+                            <th class='text-center' scope="col" >Description</th>
+                            <th class='text-center' scope="col" style={{ width: "150px" }}>Deadline</th>
+                            <th class='text-center' scope="col" style={{ width: "170px" }}>Times util Deadlines</th>
+                            <th class='text-center' scope="col" style={{ width: "120px" }}>Status</th>
+                            <th class='text-center' scope="col" style={{ width: "90px" }}>Notify</th>
+                            <th style={{ width: "90px" }} class='text-center' scope="col">Action</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {filterData.map((item, itemIndex) => (
+                            <tr key={itemIndex} style={{ backgroundColor: rowStripedStyle(item, itemIndex) }}>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{itemIndex + 1}</td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
+                                    {(editingId === item.id) & (field == "objective") ?
+                                        (<input
+                                            style={{ width: "120px" }}
+                                            type="text"
+                                            value={tempInputData.objective}
+                                            onChange={(e) => setTempInputData({ ...tempInputData, objective: e.target.value })}
+                                            onKeyPress={(e) => handleKeyPress(e, item.id)}
+                                        />) :
+                                        (<span onDoubleClick={() => handleEdit(item, "objective")}>{item.objective}</span>)
+                                    }
+                                </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    {(editingId === item.id) & (field == "description") ?
+                                        (<input
+                                            style={{ width: "95%" }}
+                                            type="text"
+                                            value={tempInputData.note}
+                                            onChange={(e) => setTempInputData({ ...tempInputData, note: e.target.value })}
+                                            onKeyPress={(e) => handleKeyPress(e, item.id)}
+                                        />) :
+                                        (<span onDoubleClick={() => handleEdit(item, "description")}>{item.note}</span>)
+                                    }
+                                </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
+                                    {(editingId === item.id) & (field == "date") ?
+                                        (<div>
+                                            <DatePicker
+                                                id="endDate"
+                                                selected={tempInputData.newdatatime}
+                                                onChange={(date) => setTempInputData({ ...tempInputData, newdatatime: date })}
+                                                showTimeSelect
+                                                dateFormat="Pp"
+                                                className="form-control"
+                                                style={{ height: "10px", "font-size": "10px", padding: "5px" }}
+                                            />
+                                            <label htmlFor="timezone" className="text-light">Timezone:</label>
+                                            <Select
+                                                id="timezone"
+                                                options={moment.tz.names().map(tz => ({ value: tz, label: tz }))}
+                                                value={tempInputData.timezone}
+                                                onChange={(timezone) => setTempInputData({ ...tempInputData, timezone: timezone })}
+                                                className="basic-single text-dark"
+                                                classNamePrefix="select"
+                                                styles={customStyles}
+                                            />
+                                        </div>
+                                        ) :
+                                        (<span onDoubleClick={() => handleEdit(item, "date")}>{item.end_date_render}</span>)
+                                    }
+                                </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{formatDeadline(item.current_tz_end_date, currentTimeInTimezone)}</td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
+                                    {(editingId === item.id) & (field == "status") ?
+                                        (<div>
+                                            <Select
+                                                id="timezone"
+                                                options={status_options}
+                                                value={tempInputData.status}
+                                                onChange={(status) => setTempInputData({ ...tempInputData, status: status })}
+                                                className="basic-single text-dark"
+                                                classNamePrefix="select"
+                                                styles={customStyles}
+
+                                            />
+                                        </div>
+                                        ) :
+                                        (<span onDoubleClick={() => handleEdit(item, "status")}>{item.status}</span>)
+                                    }
+                                </td>
+                                <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    {(editingId === item.id) & (field == "notify") ?
+                                        (<div>
+                                            <Select
+                                                id="timezone"
+                                                options={notify_options}
+                                                value={tempInputData.notification}
+                                                onChange={(notify) => setTempInputData({ ...tempInputData, notification: notify })}
+                                                className="basic-single text-dark"
+                                                classNamePrefix="select"
+                                                styles={customStyles}
+
+                                            />
+                                        </div>
+                                        ) :
+                                        (<span onDoubleClick={() => handleEdit(item, "notify")}>{item.notification}</span>)
+                                    }
+                                </td>
+                                <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    {editingId === item.id ?
+                                        (<div class="text-center mt-1">
+                                            <button onClick={() => saveEdit(item.id)} className="btn btn-light btn-sm">Save</button>
+                                            <button onClick={() => cancel()} className="btn btn-light btn-sm mt-3">Cancel</button>
+                                        </div>
+                                        ) :
+                                        (<button onClick={() => onDelete(item.id)} className="btn btn-sm btn-light text-center">
+                                            <FontAwesomeIcon icon={faTrashAlt} />
+                                        </button>)
+                                    }
+
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };
