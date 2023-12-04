@@ -34,6 +34,8 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
             id: item.id
         })
     };
+
+    
     
     const cancel = async () => {
         setEditingId(null);
