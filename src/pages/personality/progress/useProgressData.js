@@ -38,16 +38,17 @@ export const useProgressData = (currentUser) => {
             const time = `${current_tz_date.format("HH:mm:ss")}`
 
             var newdatatime =  moment(current_tz_date)
-            var today =  moment(new Date())
+            var today =  moment(new Date().date)
+            console.log(today)
             // const differenceInHours = (defOffset - orOffset) / 60;
-            // console.log()
+            console.log(today.diff(newdatatime, 'days'))
             return {
                 ...item,
                 created_at: current_tz_date,
                 date: date,
                 time: time,
                 date_render: date_render,
-                gap:  Math.floor(today.diff(newdatatime, 'hours')/24)
+                gap:  Math.floor(today.diff(newdatatime, 'days'))
             };
         });
         return data;
