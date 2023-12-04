@@ -204,7 +204,7 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
                             <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                 {(editingId === item.id) & (field =="description") ?
                                     (<input
-                                        style={{ width: "100px" }}
+                                        style={{ width: "95%" }}
                                         type="text"
                                         value={tempInputData.note}
                                         onChange={(e) => setTempInputData({ ...tempInputData, note: e.target.value })}
