@@ -45,8 +45,6 @@ export const useProgressData = (currentUser) => {
 
             // Calculate the difference in days
             const diffInDays = date2.diff(date1, 'days');
-
-            console.log(`The difference in dates is ${diffInDays} days.`);
             return {
                 ...item,
                 created_at: current_tz_date,

@@ -107,12 +107,16 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
         if (item.status == "done") {
             return 'rgb(26, 188, 156, 0.5)'
         }
+        if (item.status == "terminated") {
+            return 'rgb(211, 84, 0 , 0.4)'
+        }
         if ((item.expired >= 0) & (item.expired < item.notification)) {
             return 'rgb(241, 196, 15 , 0.4)'
         }
         if (item.expired < 0) {
             return 'rgb(169, 50, 38 , 0.4)'
         }
+        
         if (index % 2 === 0) {
             return 'rgb(0, 1, 2, 0.5)'
         } else {
@@ -128,7 +132,9 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
         { value: 'no status', label: 'no status' },
         { value: 'doing', label: 'doing' },
         { value: 'pending', label: 'pending' },
-        { value: 'done', label: 'done' }
+        { value: 'done', label: 'done' },
+        { value: 'terminated', label: 'terminated' }
+        
     ]
 
     const objectives = deadlines.map(example => example.objective);
@@ -151,23 +157,11 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
 
             return item.expired >= 0
         }
-        if (filterStatus == "doing") {
+        else if (item.status == filterStatus) {
 
-            return item.status == "doing"
+            return true
         }
-
-        if (filterStatus == "pending") {
-
-            return item.status == "pending"
-        }
-        if (filterStatus == "done") {
-
-            return item.status == "done"
-        }
-        if (filterStatus == "no status") {
-
-            return item.status == "no status"
-        }
+        
     });
 
     filterData = filterData.filter(item => {
@@ -188,9 +182,10 @@ const DeadlinesTable = ({ deadlines, onDelete, onDeadlineUpdate, formatDeadline,
                         <option value="unexpired">Unexpired</option>
                         <option value="expired">Expired</option>
                         <option value="doing">Doing</option>
-                        <option value="done">Done</option>
+                        <option value="done">Done!</option>
                         <option value="pending">Pending</option>
                         <option value="no status">no status</option>
+                        <option value="terminated">terminated</option>
                     </select>
                 </div>
 
