@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS papers (
     results TEXT                NOT NULL,
     paperid TEXT                NOT NULL,
     problems MEDIUMTEXT               ,
-    contribute MEDIUMTEXT             ,
+    contribute LONGTEXT             ,
     structure MEDIUMTEXT              ,
     abstract TEXT               ,
     url TEXT               ,
