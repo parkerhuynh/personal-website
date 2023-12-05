@@ -29,6 +29,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                             <th class='text-center' scope="col" style={{ width: "280px" }}>Paper</th>
                             <th class='text-center' scope="col" style={{ width: "120px" }}>Author</th>
                             <th class='text-center' scope="col" style={{ width: "50px" }}>Name</th>
+                            <th class='text-center' scope="col" style={{ width: "60px" }}>Year</th>
                             <th class='text-center' scope="col" style={{ width: "100px" }}>Img Enc</th>
                             <th class='text-center' scope="col" style={{ width: "100px" }}>Ques Enc</th>
                             <th class='text-center' scope="col" style={{ width: "100px" }}>Fusion</th>
@@ -52,6 +53,9 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 </td>
                                 <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                 <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.name}</Link>
+                                </td>
+                                <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.year}</Link>
                                 </td>
                                 <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
                                 <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.img_encoder}</Link>
