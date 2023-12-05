@@ -13,6 +13,7 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
     const [field, setField] = useState(null);
     const [filterObjective, setFilterObjective] = useState("all");
     const [dayhistory, setdayhistory] = useState(3);
+    
 
 
     // Merge progresses have the same date

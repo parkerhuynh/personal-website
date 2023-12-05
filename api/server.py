@@ -31,7 +31,7 @@ host = 'localhost'
 user = 'root'
 password = '12341234'
 database = 'personal'
-
+import string
 
 def day_process(datetime_str):
     original_datetime = pd.to_datetime(datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')).tz_localize('Australia/Melbourne')
@@ -77,6 +77,30 @@ def format_deadline(deadline, current_time_in_timezone):
             hours = diff.seconds // 3600
             minutes = (diff.seconds % 3600) // 60
             return f"In {hours} hour{'s' if hours > 1 else ''} and {minutes} minute{'s' if minutes > 1 else ''}"
+        
+def extract_and_sort(data):
+    datasets = {}
+    results = {}
+    #print(data)
+
+    for key, value in data.items():
+        if key.startswith('dataset_'):
+            num = int(key.split('_')[1])  # Extract the number
+            datasets[num] = value
+        elif key.startswith('result_'):
+            num = int(key.split('_')[1])  # Extract the number
+            results[num] = value
+
+    # Convert the dictionaries to ordered lists
+    datasets_list = [datasets[i] for i in sorted(datasets)]
+    results_list = [results[i] for i in sorted(results)]
+
+    return datasets_list, results_list
+
+def generate_random_id(length=15):
+    """ Generate a random string of fixed length """
+    letters = string.ascii_letters + string.digits
+    return ''.join(random.choice(letters) for i in range(length))
 
 app = Flask(__name__)
 @app.route('/create_user', methods=['POST'])
@@ -138,13 +162,11 @@ def get_progress(user_id):
     results = cursor.fetchall()
     if len(results) == 0:
         return jsonify([])
-    print(results)
     results = pd.DataFrame(results)
     results['created_at'] = results['created_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
-    print(results)
     # results['created_at'] = results['created_at'].map(day_process)
-    # print("-----------------------")
-    # print(results['created_at'] )
+    # ##print("-----------------------")
+    # #print(results['created_at'] )
     
 
     # if day != "all":
@@ -204,21 +226,6 @@ def get_deadlines(user_id):
         query = f"SELECT * FROM deadlines WHERE user_id = {user_id}"
         cursor.execute(query)
     results = cursor.fetchall()
-
-    # hours, minutes = map(int, offset.split(':'))
-    # timezone = pytz.FixedOffset(hours * 60 + minutes)
-    # current_time_in_timezone = datetime.now(timezone)
-
-    # for i in range(len(results)):
-    #     results[i]["original_end_date"] = datetime.strptime(results[i]["end_date"], '%Y-%m-%d %H:%M:%S %z')
-    #     results[i]["end_date"] = datetime.strptime(results[i]["end_date"], '%Y-%m-%d %H:%M:%S %z')
-    #     results[i]["end_date"] = results[i]["end_date"].astimezone(timezone)
-    #     days_until_given_date = (results[i]["end_date"] - current_time_in_timezone).days
-    #     results[i]["days_until_given_date"] = days_until_given_date
-    #     results[i]["rest_day_render"] = format_deadline(results[i]["end_date"], current_time_in_timezone)
-    #     results[i]["end_date_render"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S')
-    #     results[i]["end_date"] = results[i]["end_date"].strftime('%d:%m:%Y %H:%M:%S %z')
-    #     results[i]["original_end_date"] = results[i]["original_end_date"].strftime('%d:%m:%Y %H:%M:%S %z')
     return jsonify(results)
 
 
@@ -237,7 +244,6 @@ def update_deadline(item_id):
     data = request.json
     connection = make_conn()
     with connection.cursor() as cursor:
-        with connection.cursor() as cursor:
             sql = (
                 f"UPDATE deadlines SET "
                 f"end_date='{data['end_date']}', "
@@ -251,6 +257,113 @@ def update_deadline(item_id):
             cursor.execute(sql)
             connection.commit()
     return jsonify({'message': 'Deadline updated successfully'}), 200
+
+
+#PROCESS PAER
+@app.route('/add_paper', methods=['POST'])
+def add_paper():
+    paper_data = request.json
+    paperid = generate_random_id()
+    datasets, results = extract_and_sort(paper_data)
+    datasets_str = ', '.join(datasets)
+    results_str = ', '.join(results)
+    
+    insert_query = """
+    INSERT INTO papers (user_id, paper, author, conference, year, name, img_encoder, ques_encoder, 
+    fusion, datasets, results, paperid, problems, contribute, structure, abstract, url)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    
+    data = (
+        paper_data['user_id'], paper_data['paper'], paper_data['author'], paper_data['conference'],
+        paper_data['year'], paper_data['name'], paper_data['img_encoder'], paper_data['ques_encoder'],
+        paper_data['fusion'], datasets_str, results_str, paperid,
+        paper_data['problems'], paper_data['contributions'], paper_data['structure'],
+        paper_data['abstract'], paper_data['url']
+    )
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        cursor.execute(insert_query, data)
+        connection.commit()
+    return jsonify({'message': 'paper added successfully'}), 200
+
+@app.route('/delete_paper/<int:row_id>', methods=['DELETE'])
+def delete_paper(row_id):
+    # Establish a connection and create a cursor
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        delete_query = f"DELETE FROM papers WHERE id = {row_id}"
+        cursor.execute(delete_query)
+        connection.commit()
+    return Response("success", 200)
+
+@app.route('/get_papers/<user_id>', methods=['POST','GET'])
+def get_papers(user_id):
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM papers WHERE user_id = {user_id}"
+        cursor.execute(query)
+    results = cursor.fetchall()
+    results = pd.DataFrame(results)
+    results["datasets"] = results["datasets"].apply(lambda x:x.split(', ') )
+    results["results"] = results["results"].apply(lambda x:x.split(', ') )
+    return jsonify(results.to_dict("records"))
+
+@app.route('/get_one_paper/<use_id>/<paperid>', methods=['POST','GET'])
+def get_one_paper(use_id, paperid):
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM papers WHERE paperid = '{paperid}' and user_id = {use_id}"
+        cursor.execute(query)
+    results = cursor.fetchall()
+    results = pd.DataFrame(results)
+    results["datasets"] = results["datasets"].apply(lambda x:x.split(', ') )
+    results["results"] = results["results"].apply(lambda x:x.split(', ') )
+
+    if len(results) > 0:
+        
+        return results.to_dict("records")[0]
+    else:
+        return Response("error", 403)
+
+@app.route('/update_paper', methods=['POST','GET'])
+def update_paper():
+    paper_data = request.json
+    #print(paper_data)
+    paperid = paper_data['paperid']
+
+    # Prepare SQL update query
+    update_query = """
+    UPDATE papers
+    SET paper = %s, author = %s, conference = %s, year = %s, name = %s, 
+    img_encoder = %s, ques_encoder = %s, fusion = %s, datasets = %s, results = %s, 
+    problems = %s, contribute = %s, structure = %s, abstract = %s, url = %s
+    WHERE paperid = %s
+    """
+
+    # Extract other fields from paper_data and convert lists to strings
+    datasets, results = extract_and_sort(paper_data)
+    
+    datasets_str = ', '.join(datasets)
+    results_str = ', '.join(results)
+    #print(results_str)
+    # Prepare data for the query
+    data = (
+        paper_data['paper'], paper_data['author'], paper_data['conference'],
+        paper_data['year'], paper_data['name'], paper_data['img_encoder'], paper_data['ques_encoder'],
+        paper_data['fusion'], datasets_str, results_str,
+        paper_data['problems'], paper_data['contribute'], paper_data['structure'],
+        paper_data['abstract'], paper_data['url'],
+        paperid  # This is the WHERE clause value
+    )
+
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        cursor.execute(update_query, data)
+        connection.commit()
+    return jsonify({'message': 'paper added successfully'}), 200
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8888)

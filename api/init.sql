@@ -34,3 +34,25 @@ CREATE TABLE IF NOT EXISTS deadlines (
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
 
+CREATE TABLE IF NOT EXISTS papers (
+    id INT AUTO_INCREMENT       PRIMARY KEY,
+    user_id INT                 NOT NULL,
+    paper TEXT                  NOT NULL,
+    author TEXT                 NOT NULL,
+    conference TEXT              NOT NULL,
+    year INT                    NOT NULL,
+    name  TEXT                          ,
+    img_encoder TEXT            NOT NULL,
+    ques_encoder  TEXT          NOT NULL,
+    fusion   TEXT               NOT NULL,
+    datasets TEXT               NOT NULL,
+    results TEXT                NOT NULL,
+    paperid TEXT                NOT NULL,
+    problems MEDIUMTEXT               ,
+    contribute MEDIUMTEXT             ,
+    structure MEDIUMTEXT              ,
+    abstract TEXT               ,
+    url TEXT               ,
+    created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
+);
+

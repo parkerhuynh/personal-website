@@ -4,6 +4,7 @@ import 'react-quill/dist/quill.snow.css';
 
 
 const ProgressForm = ({ inputData, handleSubmit, handleInputChange }) => {
+    
 
     const modules = {
         toolbar: [
