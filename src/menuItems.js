@@ -8,8 +8,8 @@ export const menuItems_login = [
     url: 'deadlines'
   },
   {
-    title: 'Scheduler',
-    url: 'scheduler'
+    title: 'Papers',
+    url: 'papers'
   }
 ]
 

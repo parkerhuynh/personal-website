@@ -1,56 +1,64 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../components/AuthContext';
-import { useProgressData } from './useProgressData';
+import { usePaperData } from './usePaperData';
 import ReactLoading from 'react-loading';
-import ProgressForm from './ProgressForm';
-import ProgressTable from './ProgressTable';
+import PaperForm from './PaperForm';
+import PaperTable from './PaperTable';
 import axios from 'axios';
 import katex from 'katex';
 window.katex = katex;
 
-const Progress = () => {
+const Paper = () => {
     const { currentUser } = useAuth();
+    
+    const { userInfo, paper, setPaper, fetchUserData, isLoading, quillInputHandel } = usePaperData(currentUser);
+    const [addPaper, setAddPaper] = useState(false);
+    const [datasetCount, setDatasetCount] = useState(1);
+    const init_inputdata = {
+        author: "", 
+        conference: "",
+        fusion: "", 
+        img_encoder: "",
+        link:"",
+        name:"",
+        paper:"",
+        ques_encoder:"",
+        year:""}
     const [inputData, setInputData] = useState({});
-    const { userInfo, progress, setProgress, fetchUserData, isLoading, quillInputHandel } = useProgressData(currentUser);
-
-
 
     // Function to handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const payload = {
-            user_id: userInfo.id,
-            username: userInfo.username,
-            objective: inputData.objective,
-            progress: inputData.progress,
-            important: inputData.important ? 1 : 0
-        };
         try {
-            const response = await axios.post('/add_progress', payload, {
+            setInputData({});
+            
+            var payload = inputData
+            payload.user_id = userInfo.id
+            payload.url =`<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
+            payload.username = userInfo.username
+            const response = await axios.post('/add_paper', payload, {
                 headers: { 'Content-Type': 'application/json' },
             });
             console.log('Success:', response.data);
-            setInputData({
-                objective: '',
-                progress: '',
-                important: false
-            });
+            setInputData(init_inputdata);
             fetchUserData()
+            
         } catch (error) {
             console.error('Error:', error);
         }
+        
     };
 
 
-    // Function to handle the deletion of a progress row
+    // Function to handle the deletion of a paper row
     const handleRowDelete = async (rowId) => {
         try {
             // Send a DELETE request to your backend
-            const response = await axios.delete(`/delete_progress/${rowId}`);
+            const response = await axios.delete(`/delete_paper/${rowId}`);
 
             if (response.status === 200) {
-                // Update the 'progress' state to remove the deleted entry
-                setProgress(prevProgress => prevProgress.filter(item => item.id !== rowId));
+                // Update the 'paper' state to remove the deleted entry
+                setPaper(prevPaper => prevPaper.filter(item => item.id !== rowId));
             } else {
                 console.error('Failed to delete the row:', response.data.message);
                 // Handle the case where the server returns a non-success status code
@@ -61,26 +69,30 @@ const Progress = () => {
         }
     };
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (quill_name,e) => {
+        
         if (e.target) {
+            
             const { name, value, type, checked } = e.target;
             setInputData(prevInputData => ({
                 ...prevInputData,
                 [name]: type === 'checkbox' ? checked : value
             }));
         } else {
-            quillInputHandel(e, (progress) => {
+            quillInputHandel(quill_name, e, (paper, quill_name) => {
                 setInputData(prevInputData => ({
                     ...prevInputData,
-                    progress: progress  // 'action' is the new value from ReactQuill, processed asynchronously
+                    [quill_name]: paper  // 'action' is the new value from ReactQuill, processed asynchronously
                 }));
             });
         }
     };
 
-    // Function to initiate editing of a progress ro
-
-
+    // Function to initiate editing of a paper ro
+    const handleSwitch = () => {
+        setAddPaper(!addPaper)
+    };
+    
     return (
         <div className={'background-image-repeat'}>
             <div className="container">
@@ -98,17 +110,32 @@ const Progress = () => {
                             </div>
                         ) : (
                             <div class="m-0 pt-5">
-                                <ProgressForm
+                                <h2 className="text-light text-center">Papers</h2>
+                                <div class="d-flex justify-content-end mx-3">
+                                    {addPaper ? (<button type="button" class="btn btn-light me-3" onClick = {handleSwitch} style={{width:"150px"}}>Show Table</button>):
+                                    (<button type="button" class="btn btn-light me-3" onClick={handleSwitch} style={{width:"150px"}}>Add Paper</button>)
+                                    }
+                                </div>
+                                {addPaper ?
+                                (
+                                    <PaperForm
                                     handleInputChange={handleInputChange}
                                     inputData={inputData}
-                                    handleSubmit={handleSubmit} />
-
-                                <ProgressTable progress={progress}
+                                    handleSubmit={handleSubmit}
+                                    setInputData = {setInputData}
+                                    datasetCount = {datasetCount}
+                                    />
+                                ):
+                                (
+                                    <PaperTable papers={paper}
                                     handleRowDelete={handleRowDelete}
                                     fetchUserData={fetchUserData}
-                                    setProgress={setProgress}
+                                    setPaper={setPaper}
                                     quillInputHandel={quillInputHandel}
+                                    setDatasetCount={setDatasetCount}
                                 />
+                                )
+                                    }
                             </div>
                         )}
                     </div>
@@ -118,4 +145,4 @@ const Progress = () => {
     );
 };
 
-export default Progress;
+export default Paper;
