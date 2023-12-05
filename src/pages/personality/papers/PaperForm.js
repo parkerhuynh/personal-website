@@ -166,7 +166,7 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData}) 
                                 className="form-control"
                                 id="link"
                                 name="link"
-                                placeholder="Enter Author"
+                                placeholder="Enter Link"
                                 value={inputData.link}
                                 onChange={(e) => handleInputChange(null, e)}
                                 required
