@@ -4,6 +4,7 @@ import { usePaperData } from './usePaperData';
 import ReactLoading from 'react-loading';
 import PaperForm from './PaperForm';
 import PaperTable from './PaperTable';
+import '../../../App.css';
 import axios from 'axios';
 import katex from 'katex';
 window.katex = katex;
@@ -109,9 +110,9 @@ const Paper = () => {
                         ) : (
                             <div class="m-0 pt-5">
                                 <h2 className="text-light text-center">Papers</h2>
-                                <div class="d-flex justify-content-center mx-3">
-                                    {addPaper ? (<button type="button" class="btn btn-light btn-sm me-3" onClick = {handleSwitch} style={{width:"150px"}}>Show Table</button>):
-                                    (<button type="button" class="btn btn-light me-3 btn-sm" onClick={handleSwitch} style={{width:"150px"}}>Add Paper</button>)
+                                <div class="d-flex justify-content-center mt-5">
+                                    {addPaper ? (<button type="button" class="btn btn-light btn-sm me-3 text-light" onClick = {handleSwitch} style={{width:"150px", backgroundColor:"transparent"}}>Show Table</button>):
+                                    (<button type="button" class="btn btn-light me-3 btn-sm text-light" onClick={handleSwitch} style={{width:"150px", backgroundColor:"transparent"}}>Add Paper</button>)
                                     }
                                 </div>
                                 {addPaper ?
