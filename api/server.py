@@ -262,31 +262,34 @@ def update_deadline(item_id):
 #PROCESS PAER
 @app.route('/add_paper', methods=['POST'])
 def add_paper():
-    paper_data = request.json
-    paperid = generate_random_id()
-    datasets, results = extract_and_sort(paper_data)
-    datasets_str = ', '.join(datasets)
-    results_str = ', '.join(results)
-    
-    insert_query = """
-    INSERT INTO papers (user_id, paper, author, conference, year, name, img_encoder, ques_encoder, 
-    fusion, datasets, results, paperid, problems, contribute, structure, abstract, url)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """
+    try:
+        paper_data = request.json
+        paperid = generate_random_id()
+        datasets, results = extract_and_sort(paper_data)
+        datasets_str = ', '.join(datasets)
+        results_str = ', '.join(results)
+        
+        insert_query = """
+        INSERT INTO papers (user_id, paper, author, conference, year, name, img_encoder, ques_encoder, 
+        fusion, datasets, results, paperid, problems, contribute, structure, abstract, url, category)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
 
-    
-    data = (
-        paper_data['user_id'], paper_data['paper'], paper_data['author'], paper_data['conference'],
-        paper_data['year'], paper_data['name'], paper_data['img_encoder'], paper_data['ques_encoder'],
-        paper_data['fusion'], datasets_str, results_str, paperid,
-        paper_data['problems'], paper_data['contributions'], paper_data['structure'],
-        paper_data['abstract'], paper_data['url']
-    )
-    connection = make_conn()
-    with connection.cursor() as cursor:
-        cursor.execute(insert_query, data)
-        connection.commit()
-    return jsonify({'message': 'paper added successfully'}), 200
+        
+        data = (
+            paper_data['user_id'], paper_data['paper'], paper_data['author'], paper_data['conference'],
+            paper_data['year'], paper_data['name'], paper_data['img_encoder'], paper_data['ques_encoder'],
+            paper_data['fusion'], datasets_str, results_str, paperid,
+            paper_data['problems'], paper_data['contributions'], paper_data['structure'],
+            paper_data['abstract'], paper_data['url'], paper_data['category']
+        )
+        connection = make_conn()
+        with connection.cursor() as cursor:
+            cursor.execute(insert_query, data)
+            connection.commit()
+        return jsonify({'message': 'paper added successfully'}), 200
+    except:
+        return jsonify({'message': 'wrong'}), 201
 
 @app.route('/delete_paper/<int:row_id>', methods=['DELETE'])
 def delete_paper(row_id):
@@ -300,15 +303,18 @@ def delete_paper(row_id):
 
 @app.route('/get_papers/<user_id>', methods=['POST','GET'])
 def get_papers(user_id):
-    connection = make_conn()
-    with connection.cursor() as cursor:
-        query = f"SELECT * FROM papers WHERE user_id = {user_id}"
-        cursor.execute(query)
-    results = cursor.fetchall()
-    results = pd.DataFrame(results)
-    results["datasets"] = results["datasets"].apply(lambda x:x.split(', ') )
-    results["results"] = results["results"].apply(lambda x:x.split(', ') )
-    return jsonify(results.to_dict("records"))
+    try:
+        connection = make_conn()
+        with connection.cursor() as cursor:
+            query = f"SELECT * FROM papers WHERE user_id = {user_id}"
+            cursor.execute(query)
+        results = cursor.fetchall()
+        results = pd.DataFrame(results)
+        results["datasets"] = results["datasets"].apply(lambda x:x.split(', ') )
+        results["results"] = results["results"].apply(lambda x:x.split(', ') )
+        return jsonify(results.to_dict("records"))
+    except:
+        return Response("error", 403)
 
 @app.route('/get_one_paper/<use_id>/<paperid>', methods=['POST','GET'])
 def get_one_paper(use_id, paperid):
@@ -322,7 +328,6 @@ def get_one_paper(use_id, paperid):
     results["results"] = results["results"].apply(lambda x:x.split(', ') )
 
     if len(results) > 0:
-        
         return results.to_dict("records")[0]
     else:
         return Response("error", 403)
@@ -338,10 +343,9 @@ def update_paper():
     UPDATE papers
     SET paper = %s, author = %s, conference = %s, year = %s, name = %s, 
     img_encoder = %s, ques_encoder = %s, fusion = %s, datasets = %s, results = %s, 
-    problems = %s, contribute = %s, structure = %s, abstract = %s, url = %s
-    WHERE paperid = %s
+    problems = %s, contribute = %s, structure = %s, abstract = %s, url = %s, category = %s WHERE paperid = %s
     """
-
+    print(update_query)
     # Extract other fields from paper_data and convert lists to strings
     datasets, results = extract_and_sort(paper_data)
     
@@ -354,7 +358,7 @@ def update_paper():
         paper_data['year'], paper_data['name'], paper_data['img_encoder'], paper_data['ques_encoder'],
         paper_data['fusion'], datasets_str, results_str,
         paper_data['problems'], paper_data['contribute'], paper_data['structure'],
-        paper_data['abstract'], paper_data['url'],
+        paper_data['abstract'], paper_data['url'], paper_data['category'],
         paperid  # This is the WHERE clause value
     )
 

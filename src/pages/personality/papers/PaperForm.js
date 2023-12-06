@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 
-const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData}) => {
+const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData }) => {
     const [datasetCount, setDatasetCount] = useState(1);
     const modules = {
         toolbar: [
@@ -34,13 +34,13 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData}) 
 
     const deleteDataset = (index) => {
         setInputData(prevInputData => {
-          const newData = { ...prevInputData };
-          delete newData[`dataset_${index}`];
-          delete newData[`result_${index}`];
-          return newData;
+            const newData = { ...prevInputData };
+            delete newData[`dataset_${index}`];
+            delete newData[`result_${index}`];
+            return newData;
         });
         setDatasetCount(prevCount => prevCount - 1);
-      };
+    };
 
     const renderInputs = () => {
         let inputs = [];
@@ -73,13 +73,13 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData}) 
                                 required
                             />
                         </label>
-                        
+
                     </div>
                     <div class="d-flex align-items-end">
                         <button type="button" className="btn btn-light bn-sm ms-3" onClick={() => deleteDataset(i)}>Delete</button>
                     </div>
-                    
-                    
+
+
                 </div>
             );
         }
@@ -159,7 +159,7 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData}) 
                         </div>
                     </div>
                     <div class="row">
-                    <div className="form-group pt-2 col-10">
+                        <div className="form-group pt-2 col-10">
                             <label htmlFor="author"><h6 className="text-light px-2">Link</h6></label>
                             <input
                                 type="text"
@@ -172,6 +172,26 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData}) 
                                 required
                             />
                         </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                        <div className="form-group pt-2">
+                            <label htmlFor="category"><h6 className="text-light px-2">Category</h6></label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                id="category"
+                                name="category"
+                                placeholder="Enter Link"
+                                value={inputData.category}
+                                onChange={(e) => handleInputChange(null, e)}
+                                required
+                            />
+                        </div>
+
+                        </div>
+                    
 
                     </div>
 
@@ -271,7 +291,7 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData}) 
                             }}
                         />
                     </div>
-                    
+
                     <div className="d-flex justify-content-center">
                         <div className="text-center my-3">
                             <button type="submit" className="btn btn-light">Submit</button>

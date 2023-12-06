@@ -29,22 +29,20 @@ const Paper = () => {
     // Function to handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            setInputData({});
-            
-            var payload = inputData
-            payload.user_id = userInfo.id
-            payload.url =`<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
-            payload.username = userInfo.username
-            const response = await axios.post('/add_paper', payload, {
-                headers: { 'Content-Type': 'application/json' },
+        var payload = inputData
+        payload.user_id = userInfo.id
+        payload.url =`<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
+        payload.username = userInfo.username
+        const response = await axios.post('/add_paper', payload, {
+            headers: { 'Content-Type': 'application/json' },
             });
+        if (response.status === 200) {
             console.log('Success:', response.data);
             setInputData(init_inputdata);
             fetchUserData()
             
-        } catch (error) {
-            console.error('Error:', error);
+        } else {
+            window.alert("Upload Failed: The paper could not be uploaded.!");
         }
         
     };
@@ -95,7 +93,7 @@ const Paper = () => {
     
     return (
         <div className={'background-image-repeat'}>
-            <div className="container">
+            <div class="mx-5">
                 {!currentUser ? (
                     <div className="pt-5 text-center">
                         <h1 className="text-danger pb-5">Warning!</h1>
@@ -111,9 +109,9 @@ const Paper = () => {
                         ) : (
                             <div class="m-0 pt-5">
                                 <h2 className="text-light text-center">Papers</h2>
-                                <div class="d-flex justify-content-end mx-3">
-                                    {addPaper ? (<button type="button" class="btn btn-light me-3" onClick = {handleSwitch} style={{width:"150px"}}>Show Table</button>):
-                                    (<button type="button" class="btn btn-light me-3" onClick={handleSwitch} style={{width:"150px"}}>Add Paper</button>)
+                                <div class="d-flex justify-content-center mx-3">
+                                    {addPaper ? (<button type="button" class="btn btn-light btn-sm me-3" onClick = {handleSwitch} style={{width:"150px"}}>Show Table</button>):
+                                    (<button type="button" class="btn btn-light me-3 btn-sm" onClick={handleSwitch} style={{width:"150px"}}>Add Paper</button>)
                                     }
                                 </div>
                                 {addPaper ?

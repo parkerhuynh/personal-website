@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS papers (
     contribute LONGTEXT             ,
     structure MEDIUMTEXT              ,
     abstract TEXT               ,
+    category TEXT               ,
     url TEXT               ,
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
