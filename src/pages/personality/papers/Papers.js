@@ -20,10 +20,14 @@ const Paper = () => {
         conference: "",
         fusion: "", 
         img_encoder: "",
+        contributions:"",
         link:"",
         name:"",
         paper:"",
         ques_encoder:"",
+        structure: "",
+        abtract: "",
+        category:"",
         year:""}
     const [inputData, setInputData] = useState({});
 

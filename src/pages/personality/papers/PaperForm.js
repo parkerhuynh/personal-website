@@ -183,7 +183,7 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData })
                                 className="form-control"
                                 id="category"
                                 name="category"
-                                placeholder="Enter Link"
+                                placeholder="Enter Category"
                                 value={inputData.category}
                                 onChange={(e) => handleInputChange(null, e)}
                                 required
