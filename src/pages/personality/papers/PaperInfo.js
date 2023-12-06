@@ -90,13 +90,66 @@ function PaperInfo() {
         formula: true,
     };
 
+    function resizeImageToMaxDimension(width, height, maxDimension) {
+        // Calculate the aspect ratio
+        const aspectRatio = width / height;
+
+        // Determine new dimensions
+        let newWidth, newHeight;
+
+        if (width > height) {
+            // If width is the larger dimension
+            newWidth = Math.min(width, maxDimension);
+            newHeight = newWidth / aspectRatio;
+        } else {
+            // If height is the larger dimension or if width and height are equal
+            newHeight = Math.min(height, maxDimension);
+            newWidth = newHeight * aspectRatio;
+        }
+
+        // Ensuring that dimensions are integers
+        newWidth = Math.round(newWidth);
+        newHeight = Math.round(newHeight);
+
+        return { newWidth, newHeight };
+    }
+
+    function quillInputHandel(quill_name, action, callback) {
+        // Check if the action string contains an <img> tag
+        if (action.includes("<img")) {
+            // Create a new Image object
+            let img = new Image();
+
+            // Extract the image source from the action string
+            let srcMatch = action.match(/<img src="(.*?)"/);
+            if (srcMatch && srcMatch[1]) {
+                img.src = srcMatch[1];
+
+                // Once the image is loaded, calculate the new dimensions
+                img.onload = function () {
+                    let new_dimens = resizeImageToMaxDimension(img.width, img.height, 1200);
+                    let resizedAction = action.replace("<img", `<img width="${new_dimens.newWidth}" height="${new_dimens.newHeight}"`);
+                    // Execute the callback function with the resized action
+                    callback(resizedAction, quill_name);
+                };
+            } else {
+                // If no image source is found, return the original action
+                callback(action, quill_name);
+            }
+        } else {
+            // If no <img> tag is found, return the original action
+            callback(action, quill_name);
+        }
+    }
+
+
     const handleEdit = (editingfield) => {
         setField(editingfield)
         setIsEdit(true)
         setTemPaperInfo(paperInfo)
 
     };
-    const handleInputChange = (quill_name, e) => {
+    const handleInputChange = (quill_name,e) => {
         
         if (e.target) {
             
@@ -105,15 +158,16 @@ function PaperInfo() {
                 ...prevInputData,
                 [name]: type === 'checkbox' ? checked : value
             }));
-            console.log(temPaperInfo)
         } else {
-            setTemPaperInfo(prevInputData => ({
-                ...prevInputData,
-                [quill_name]: e
-            }));
-            ;
+            quillInputHandel(quill_name, e, (paper, quill_name) => {
+                setTemPaperInfo(prevInputData => ({
+                    ...prevInputData,
+                    [quill_name]: paper  // 'action' is the new value from ReactQuill, processed asynchronously
+                }));
+            });
         }
     };
+
     const handleSubmit = async () => {
         
         try {
