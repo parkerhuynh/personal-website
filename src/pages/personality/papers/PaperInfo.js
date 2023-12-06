@@ -108,7 +108,6 @@ function PaperInfo() {
             //     payload.url = `<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
 
             // }
-            payload.url = payload.link
             const response = await axios.post('/update_paper', payload, {
             headers: { 'Content-Type': 'application/json' },
             });
@@ -203,10 +202,10 @@ function PaperInfo() {
                                                                 <input
                                                                     type="text"
                                                                     className="form-control"
-                                                                    id="link"
-                                                                    name="link"
+                                                                    id="url"
+                                                                    name="url"
                                                                     placeholder="Enter URL"
-                                                                    value={temPaperInfo.link}
+                                                                    value={temPaperInfo.url}
                                                                     onChange={(e) => handleInputChange(null, e)}
                                                                     required
                                                                 />
@@ -214,7 +213,7 @@ function PaperInfo() {
 
                                                         </div>
                                                     ) : (
-                                                        <div onDoubleClick={() => handleEdit("url")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(`<p><a href="${paperInfo.link}" rel="noopener noreferrer" target="_blank">${paperInfo.link}</a></p>`) }} />
+                                                        <div onDoubleClick={() => handleEdit("url")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(`<p><a href="${paperInfo.url}" rel="noopener noreferrer" target="_blank">${paperInfo.url}</a></p>`) }} />
                                                     )}
                                                 </td>
                                             </tr>
