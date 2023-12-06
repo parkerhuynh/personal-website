@@ -30,7 +30,6 @@ export const usePaperData = (currentUser) => {
     };
 
     const processPaperData = (data) => {
-        data = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         data = data.map((item) => {
             return item
         });

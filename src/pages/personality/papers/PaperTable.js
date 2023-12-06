@@ -29,7 +29,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
     const categoryOptions = useMemo(() => getFilterOptions('category'), [papers]);
     const yearOption = useMemo(() => getFilterOptions('year'), [papers]);
 
-    const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
+    const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
     const rowStripedStyle = (index) => ({
         backgroundColor: index % 2 === 1 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94 , 0.5)'
     });
