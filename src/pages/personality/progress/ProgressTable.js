@@ -223,9 +223,8 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
                                                         theme="snow"
                                                         value={tempInputData.progress}
                                                         onChange={(newContent, delta, source, editor) => {
-                                                            // Call quillInputHandel to handle the new content
+
                                                             quillInputHandel(newContent, (progress) => {
-                                                                // Update tempInputData with the processed action
                                                                 setTempInputData({ ...tempInputData, progress });
                                                             });
                                                         }}
