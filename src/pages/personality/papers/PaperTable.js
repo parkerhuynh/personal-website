@@ -11,12 +11,12 @@ import { Link } from 'react-router-dom';
 const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInputHandel }) => {
     // Merge paperes have the same date
     const [searchInput, setSearchInput] = useState('');
-    const [filterConference, setFilterConference] = useState('');
-    const [filterImgEnc, setFilterImgEnc] = useState('');
-    const [filterQuesEnc, setFilterQuesEnc] = useState('');
-    const [filterFusion, setFilterFusion] = useState('');
-    const [filterCategory, setFilterCategory] = useState('');
-    const [filterYear, setFilterYear] = useState('');
+    const [filterConference, setFilterConference] = useState('all');
+    const [filterImgEnc, setFilterImgEnc] = useState('all');
+    const [filterQuesEnc, setFilterQuesEnc] = useState('all');
+    const [filterFusion, setFilterFusion] = useState('all');
+    const [filterCategory, setFilterCategory] = useState('all');
+    const [filterYear, setFilterYear] = useState('all');
 
     const getFilterOptions = (key) => {
         const unique = new Set(papers.map(item => item[key]));
@@ -42,12 +42,12 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
     };
     const handleReset = () => {
         setSearchInput("")
-        setFilterConference("")
-        setFilterImgEnc("")
-        setFilterQuesEnc("")
-        setFilterFusion("")
-        setFilterCategory("")
-        setFilterYear('')
+        setFilterConference("all")
+        setFilterImgEnc("all")
+        setFilterQuesEnc("all")
+        setFilterFusion("all")
+        setFilterCategory("all")
+        setFilterYear('all')
     };
 
     const filteredPapers = papers.filter(paper => {
@@ -57,12 +57,12 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
         console.log(paper.year)
         console.log(filterYear)
         return matchesSearch &&
-            (filterConference === '' || paper.conference === filterConference) &&
-            (filterImgEnc === '' || paper.img_encoder === filterImgEnc) &&
-            (filterQuesEnc === '' || paper.ques_encoder === filterQuesEnc) &&
-            (filterFusion === '' || paper.fusion === filterFusion) &&
-            (filterCategory === '' || paper.category === filterCategory) &&
-            (filterYear === '' || paper.year.toString() === filterYear)
+            (filterConference === 'all' || paper.conference === filterConference) &&
+            (filterImgEnc === 'all' || paper.img_encoder === filterImgEnc) &&
+            (filterQuesEnc === 'all' || paper.ques_encoder === filterQuesEnc) &&
+            (filterFusion === 'all' || paper.fusion === filterFusion) &&
+            (filterCategory === 'all' || paper.category === filterCategory) &&
+            (filterYear === 'all' || paper.year.toString() === filterYear)
     });
     // Sorted and filtered papers
     const sortedAndFilteredPapers = useMemo(() => {
@@ -75,20 +75,43 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
         });
         return sortedPapers;
     }, [filteredPapers, sortOrder]);
+
     return (
         <div>
 
             {filteredPapers == {} ? (null) : (
                 <div>
-                    <div class="col-6 mt-4">
-                        <div class="input-group">
-                            <input
-                                type="text"
-                                class="form-control me-3"
-                                placeholder="Search by Paper or Name"
-                                value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
-                            />
+                    <div class="row">
+                        <div class="col-6 mt-4">
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    placeholder="Search by Paper or Name"
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-2 mt-4">
+                            <select
+                                className="form-select"
+                                value={filterYear}
+                                onChange={(e) => setFilterYear(e.target.value)}
+                            >
+                                <option value="all">All Year</option>
+                                {yearOption.map(option => <option key={option} value={option}>{option}</option>)}
+                            </select>
+                        </div>
+                        <div className="col-2 mt-4">
+                            <select
+                                className="form-select"
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                            >
+                                <option value="all">All categories</option>
+                                {categoryOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                            </select>
                         </div>
                     </div>
                     <div class="row mt-3">
@@ -98,7 +121,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 value={filterConference}
                                 onChange={(e) => setFilterConference(e.target.value)}
                             >
-                                <option value="">All Conferences</option>
+                                <option value="all">All Conferences</option>
                                 {conferenceOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
@@ -108,7 +131,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 value={filterImgEnc}
                                 onChange={(e) => setFilterImgEnc(e.target.value)}
                             >
-                                <option value="">All Image Encoder</option>
+                                <option value="all">All Image Encoder</option>
                                 {imgEncOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
@@ -118,7 +141,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 value={filterQuesEnc}
                                 onChange={(e) => setFilterQuesEnc(e.target.value)}
                             >
-                                <option value="">All Question Encoder</option>
+                                <option value="all">All Question Encoder</option>
                                 {quesEncOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
@@ -128,32 +151,13 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 value={filterFusion}
                                 onChange={(e) => setFilterFusion(e.target.value)}
                             >
-                                <option value="">All Fusions</option>
+                                <option value="all">All Fusions</option>
                                 {fusionOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
-                        <div className="col-2">
-                            <select
-                                className="form-select"
-                                value={filterFusion}
-                                onChange={(e) => setFilterFusion(e.target.value)}
-                            >
-                                <option value="">All Fusions</option>
-                                {fusionOptions.map(option => <option key={option} value={option}>{option}</option>)}
-                            </select>
-                        </div>
-                        <div className="col-1">
-                            <select
-                                className="form-select"
-                                value={filterYear}
-                                onChange={(e) => setFilterYear(e.target.value)}
-                            >
-                                <option value="">All Year</option>
-                                {yearOption.map(option => <option key={option} value={option}>{option}</option>)}
-                            </select>
-                        </div>
+
                         <div className="col-1 d-flex align-items-center">
-                            <button type="button" class="btn btn-light me-3 btn-sm text-light" onClick={handleReset} style={{width:"150px", backgroundColor:"transparent"}}>Reset</button>
+                            <button type="button" class="btn btn-light me-3 btn-sm text-light" onClick={handleReset} style={{ width: "150px", backgroundColor: "transparent" }}>Reset</button>
                         </div>
                     </div>
                     <div className="table">
@@ -165,7 +169,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                     <th class='text-center' scope="col" style={{ width: "200px" }}>Author</th>
                                     <th class='text-center' scope="col" style={{ width: "100px" }}>Name</th>
                                     <th class='text-center' scope="col" style={{ width: "150px" }}>Conference</th>
-                                    <th onClick={toggleSortOrder} style={{ cursor: 'pointer', width: "90px"  }} class='text-center' scope="col" >Year {sortOrder === 'asc' ? '↑' : '↓'}</th>
+                                    <th onClick={toggleSortOrder} style={{ cursor: 'pointer', width: "90px" }} class='text-center' scope="col" >Year {sortOrder === 'asc' ? '↑' : '↓'}</th>
                                     <th class='text-center' style={{ width: "150px" }} scope="col">Img Enc</th>
                                     <th class='text-center' scope="col" style={{ width: "150px" }} >Ques Enc</th>
                                     <th class='text-center' scope="col" style={{ width: "150px" }} >Fusion</th>
