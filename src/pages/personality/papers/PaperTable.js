@@ -25,14 +25,15 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                 <table className="table table-dark table-bordered mt-4">
                     <thead>
                         <tr>
-                            <th class='text-center' scope="col" style={{ width: "30px" }}>ID</th>
-                            <th class='text-center' scope="col" style={{ width: "280px" }}>Paper</th>
-                            <th class='text-center' scope="col" style={{ width: "120px" }}>Author</th>
-                            <th class='text-center' scope="col" style={{ width: "50px" }}>Name</th>
-                            <th class='text-center' scope="col" style={{ width: "60px" }}>Year</th>
-                            <th class='text-center' scope="col" style={{ width: "100px" }}>Img Enc</th>
-                            <th class='text-center' scope="col" style={{ width: "100px" }}>Ques Enc</th>
-                            <th class='text-center' scope="col" style={{ width: "100px" }}>Fusion</th>
+                            <th class='text-center' scope="col" >ID</th>
+                            <th class='text-center' scope="col"  style={{ width: "300px" }}>Paper</th>
+                            <th class='text-center' scope="col" >Author</th>
+                            <th class='text-center' scope="col" >Name</th>
+                            <th class='text-center' scope="col" >Conference</th>
+                            <th class='text-center' scope="col" >Year</th>
+                            <th class='text-center' scope="col">Img Enc</th>
+                            <th class='text-center' scope="col" >Ques Enc</th>
+                            <th class='text-center' scope="col">Fusion</th>
 
                             <th style={{ width: "90px" }} class='text-center' scope="col">Datasets</th>
                             <th style={{ width: "90px" }} class='text-center' scope="col">Results</th>
@@ -53,6 +54,9 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 </td>
                                 <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                 <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.name}</Link>
+                                </td>
+                                <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.category}</Link>
                                 </td>
                                 <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                 <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.year}</Link>

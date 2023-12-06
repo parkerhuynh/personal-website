@@ -121,7 +121,7 @@ function PaperInfo() {
     console.log(paperInfo)
     return (
         <div className={'background-image-repeat'}>
-            <div class="container">
+            <div class="container pb-5">
                 {!currentUser ? (
                     <div className="container">
                         <div className="pt-5 text-center">
@@ -139,7 +139,7 @@ function PaperInfo() {
                                         <thead>
                                         </thead>
                                         <tbody>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("paper")} >
                                                 <td style={{ verticalAlign: 'middle', width: "200px" }} ><h5>Title</h5></td>
                                                 <td class="text-left">
                                                     {(isEdit & (field == "paper")) ? (
@@ -164,7 +164,7 @@ function PaperInfo() {
 
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("name")} >
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Name</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "name")) ? (
@@ -189,7 +189,7 @@ function PaperInfo() {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("url")} >
                                                 <td style={{ verticalAlign: 'middle' }} onDoubleClick={() => handleEdit("url")}><h5>URL</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "url")) ? (
@@ -214,7 +214,7 @@ function PaperInfo() {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("abstract")} >
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Abstract</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "abstract")) ? (
@@ -233,7 +233,7 @@ function PaperInfo() {
 
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("author")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Authors</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "author")) ? (
@@ -258,7 +258,7 @@ function PaperInfo() {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("conference")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Conference</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "conference")) ? (
@@ -283,7 +283,7 @@ function PaperInfo() {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("year")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Year</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "year")) ? (
@@ -308,7 +308,31 @@ function PaperInfo() {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("category")}>
+                                                <td style={{ verticalAlign: 'middle' }} onDoubleClick={(e) => handleEdit("category")}><h5>Category</h5></td>
+                                                <td>
+                                                    {(isEdit & (field == "category")) ? (
+                                                        <div>
+                                                            <div className="form-group">
+                                                                <input
+                                                                    type="text"
+                                                                    className="form-control"
+                                                                    id="category"
+                                                                    name="category"
+                                                                    placeholder="Enter Category"
+                                                                    value={temPaperInfo.category}
+                                                                    onChange={(e) => handleInputChange(null, e)}
+                                                                    required
+                                                                />
+                                                            </div>
+
+                                                        </div>
+                                                    ) : (
+                                                        <div> <h6 onDoubleClick={(e) => handleEdit("category")} class="text-light text-left"> {paperInfo.category}</h6></div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                            <tr onDoubleClick={(e) => handleEdit("img_encoder")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Image Encoder</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "img_encoder")) ? (
@@ -333,7 +357,7 @@ function PaperInfo() {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("ques_enc")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Question Encoder</h5></td>
 
                                                 <td>
@@ -359,7 +383,7 @@ function PaperInfo() {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("fusion")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Fusion</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "fusion")) ? (
@@ -454,8 +478,8 @@ function PaperInfo() {
                                                 )}
 
                                             </tr>
-                                            <tr>
-                                                <td style={{ verticalAlign: 'middle' }} ><h5>Contribtions</h5></td>
+                                            <tr onDoubleClick={(e) => handleEdit("contribute")}>
+                                                <td style={{ verticalAlign: 'middle' }} ><h5>Contributions</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "contribute")) ? (
                                                         <div className="form-group">
@@ -474,7 +498,7 @@ function PaperInfo() {
                                                 </td>
 
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("structure")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Structure</h5></td>
                                                 <td>
                                                     {(isEdit & (field == "structure")) ? (
@@ -493,7 +517,7 @@ function PaperInfo() {
 
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr onDoubleClick={(e) => handleEdit("problems")}>
                                                 <td style={{ verticalAlign: 'middle' }} ><h5>Limitations</h5></td>
                                                 <td>
                                                 {(isEdit & (field == "problems")) ? (
