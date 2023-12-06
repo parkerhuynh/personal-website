@@ -12,7 +12,7 @@ const PaperForm = ({ inputData, handleSubmit, handleInputChange, setInputData })
             ['bold', 'italic', 'underline', 'strike', 'blockquote'],
             [
                 {
-                    color: ["red", "blue", "yellow"],
+                    color: ["red", "blue", "yellow", "white", "light green", "orange", "pink", "light blue", "purple", "lime", "magenta", "cyan"],
                 },
             ],
             ['code-block', 'image'],
