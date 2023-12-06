@@ -32,7 +32,8 @@ const Paper = () => {
         e.preventDefault();
         var payload = inputData
         payload.user_id = userInfo.id
-        payload.url =`<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
+        // payload.url =`<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
+        payload.url = payload.link
         payload.username = userInfo.username
         const response = await axios.post('/add_paper', payload, {
             headers: { 'Content-Type': 'application/json' },

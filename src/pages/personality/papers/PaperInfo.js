@@ -104,7 +104,11 @@ function PaperInfo() {
             var payload = temPaperInfo
             payload.user_id = temPaperInfo.id
             payload.username = temPaperInfo.username
-            payload.url = `<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
+            // if (payload.link != "") {
+            //     payload.url = `<p><a href="${payload.link}" rel="noopener noreferrer" target="_blank">${payload.link}</a></p>`
+
+            // }
+            payload.url = payload.link
             const response = await axios.post('/update_paper', payload, {
             headers: { 'Content-Type': 'application/json' },
             });
@@ -210,7 +214,7 @@ function PaperInfo() {
 
                                                         </div>
                                                     ) : (
-                                                        <div onDoubleClick={() => handleEdit("url")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(paperInfo.url) }} />
+                                                        <div onDoubleClick={() => handleEdit("url")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(`<p><a href="${paperInfo.link}" rel="noopener noreferrer" target="_blank">${paperInfo.link}</a></p>`) }} />
                                                     )}
                                                 </td>
                                             </tr>
