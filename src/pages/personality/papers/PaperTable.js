@@ -16,6 +16,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
     const [filterQuesEnc, setFilterQuesEnc] = useState('');
     const [filterFusion, setFilterFusion] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
+    const [filterYear, setFilterYear] = useState('');
 
     const getFilterOptions = (key) => {
         const unique = new Set(papers.map(item => item[key]));
@@ -26,6 +27,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
     const quesEncOptions = useMemo(() => getFilterOptions('ques_encoder'), [papers]);
     const fusionOptions = useMemo(() => getFilterOptions('fusion'), [papers]);
     const categoryOptions = useMemo(() => getFilterOptions('category'), [papers]);
+    const yearOption = useMemo(() => getFilterOptions('year'), [papers]);
 
     const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
     const rowStripedStyle = (index) => ({
@@ -38,17 +40,29 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
     const toggleSortOrder = () => {
         setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     };
+    const handleReset = () => {
+        setSearchInput("")
+        setFilterConference("")
+        setFilterImgEnc("")
+        setFilterQuesEnc("")
+        setFilterFusion("")
+        setFilterCategory("")
+        setFilterYear('')
+    };
 
     const filteredPapers = papers.filter(paper => {
         const searchLower = searchInput.toLowerCase();
         const matchesSearch = searchLower === '' || paper.paper.toLowerCase().includes(searchLower) ||
             paper.name.toLowerCase().includes(searchLower);
+        console.log(paper.year)
+        console.log(filterYear)
         return matchesSearch &&
             (filterConference === '' || paper.conference === filterConference) &&
             (filterImgEnc === '' || paper.img_encoder === filterImgEnc) &&
             (filterQuesEnc === '' || paper.ques_encoder === filterQuesEnc) &&
             (filterFusion === '' || paper.fusion === filterFusion) &&
-            (filterCategory === '' || paper.category === filterCategory);
+            (filterCategory === '' || paper.category === filterCategory) &&
+            (filterYear === '' || paper.year.toString() === filterYear)
     });
     // Sorted and filtered papers
     const sortedAndFilteredPapers = useMemo(() => {
@@ -121,12 +135,25 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                         <div className="col-2">
                             <select
                                 className="form-select"
-                                value={filterCategory}
-                                onChange={(e) => setFilterCategory(e.target.value)}
+                                value={filterFusion}
+                                onChange={(e) => setFilterFusion(e.target.value)}
                             >
-                                <option value="">All Categories</option>
-                                {categoryOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                                <option value="">All Fusions</option>
+                                {fusionOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
+                        </div>
+                        <div className="col-1">
+                            <select
+                                className="form-select"
+                                value={filterYear}
+                                onChange={(e) => setFilterYear(e.target.value)}
+                            >
+                                <option value="">All Year</option>
+                                {yearOption.map(option => <option key={option} value={option}>{option}</option>)}
+                            </select>
+                        </div>
+                        <div className="col-1 d-flex align-items-center">
+                            <button type="button" class="btn btn-light me-3 btn-sm text-light" onClick={handleReset} style={{width:"150px", backgroundColor:"transparent"}}>Reset</button>
                         </div>
                     </div>
                     <div className="table">
