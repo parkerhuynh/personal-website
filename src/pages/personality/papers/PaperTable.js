@@ -15,6 +15,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
     const [filterImgEnc, setFilterImgEnc] = useState('');
     const [filterQuesEnc, setFilterQuesEnc] = useState('');
     const [filterFusion, setFilterFusion] = useState('');
+    const [filterCategory, setFilterCategory] = useState('');
 
     const getFilterOptions = (key) => {
         const unique = new Set(papers.map(item => item[key]));
@@ -24,6 +25,8 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
     const imgEncOptions = useMemo(() => getFilterOptions('img_encoder'), [papers]);
     const quesEncOptions = useMemo(() => getFilterOptions('ques_encoder'), [papers]);
     const fusionOptions = useMemo(() => getFilterOptions('fusion'), [papers]);
+    const categoryOptions = useMemo(() => getFilterOptions('category'), [papers]);
+
     const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
     const rowStripedStyle = (index) => ({
         backgroundColor: index % 2 === 1 ? 'rgb(0, 1, 2, 0.5)' : 'rgb(52, 73, 94 , 0.5)'
@@ -44,7 +47,8 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
             (filterConference === '' || paper.conference === filterConference) &&
             (filterImgEnc === '' || paper.img_encoder === filterImgEnc) &&
             (filterQuesEnc === '' || paper.ques_encoder === filterQuesEnc) &&
-            (filterFusion === '' || paper.fusion === filterFusion);
+            (filterFusion === '' || paper.fusion === filterFusion) &&
+            (filterCategory === '' || paper.category === filterCategory);
     });
     // Sorted and filtered papers
     const sortedAndFilteredPapers = useMemo(() => {
@@ -74,7 +78,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                         </div>
                     </div>
                     <div class="row mt-3">
-                        <div className="col-3">
+                        <div className="col-2">
                             <select
                                 className="form-select"
                                 value={filterConference}
@@ -84,7 +88,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 {conferenceOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
-                        <div className="col-3">
+                        <div className="col-2">
                             <select
                                 className="form-select"
                                 value={filterImgEnc}
@@ -94,7 +98,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 {imgEncOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
-                        <div className="col-3">
+                        <div className="col-2">
                             <select
                                 className="form-select"
                                 value={filterQuesEnc}
@@ -104,7 +108,7 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 {quesEncOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
-                        <div className="col-3">
+                        <div className="col-2">
                             <select
                                 className="form-select"
                                 value={filterFusion}
@@ -114,21 +118,31 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                 {fusionOptions.map(option => <option key={option} value={option}>{option}</option>)}
                             </select>
                         </div>
+                        <div className="col-2">
+                            <select
+                                className="form-select"
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                            >
+                                <option value="">All Categories</option>
+                                {categoryOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                            </select>
+                        </div>
                     </div>
                     <div className="table">
                         <table className="table table-dark table-bordered mt-4">
                             <thead>
                                 <tr>
-                                    <th class='text-center' scope="col" >ID</th>
-                                    <th class='text-center' scope="col" style={{ width: "300px" }}>Paper</th>
-                                    <th class='text-center' scope="col" >Author</th>
-                                    <th class='text-center' scope="col" >Name</th>
-                                    <th class='text-center' scope="col" >Conference</th>
-                                    <th onClick={toggleSortOrder} style={{ cursor: 'pointer' }} class='text-center' scope="col" >Year {sortOrder === 'asc' ? '↑' : '↓'}</th>
-                                    <th class='text-center' scope="col">Img Enc</th>
-                                    <th class='text-center' scope="col" >Ques Enc</th>
-                                    <th class='text-center' scope="col">Fusion</th>
-
+                                    <th class='text-center' scope="col" style={{ width: "25px" }}>ID</th>
+                                    <th class='text-center' scope="col" >Paper</th>
+                                    <th class='text-center' scope="col" style={{ width: "200px" }}>Author</th>
+                                    <th class='text-center' scope="col" style={{ width: "100px" }}>Name</th>
+                                    <th class='text-center' scope="col" style={{ width: "150px" }}>Conference</th>
+                                    <th onClick={toggleSortOrder} style={{ cursor: 'pointer', width: "90px"  }} class='text-center' scope="col" >Year {sortOrder === 'asc' ? '↑' : '↓'}</th>
+                                    <th class='text-center' style={{ width: "150px" }} scope="col">Img Enc</th>
+                                    <th class='text-center' scope="col" style={{ width: "150px" }} >Ques Enc</th>
+                                    <th class='text-center' scope="col" style={{ width: "150px" }} >Fusion</th>
+                                    <th class='text-center' scope="col" style={{ width: "100px" }} >Category</th>
                                     <th style={{ width: "90px" }} class='text-center' scope="col">Datasets</th>
                                     <th style={{ width: "90px" }} class='text-center' scope="col">Results</th>
                                     <th style={{ width: "40px" }} class='text-center' scope="col"></th>
@@ -163,6 +177,9 @@ const PaperTable = ({ papers, handleRowDelete, fetchUserData, setPaper, quillInp
                                         </td>
                                         <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
                                             <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.fusion}</Link>
+                                        </td>
+                                        <td onDoubleClick={() => handlePaperClick(item.paperid)} style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
+                                            <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.category}</Link>
                                         </td>
                                         <td onDoubleClick={() => handlePaperClick(item.paperid)} className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                             <Link to={`/paperinfo/${item.paperid}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.datasets.map((dataset) => (<p>{dataset}</p>))}</Link>
