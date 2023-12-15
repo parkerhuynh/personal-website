@@ -73,7 +73,7 @@ export const usePaperData = (currentUser) => {
 
                 // Once the image is loaded, calculate the new dimensions
                 img.onload = function () {
-                    let new_dimens = resizeImageToMaxDimension(img.width, img.height, 800);
+                    let new_dimens = resizeImageToMaxDimension(img.width, img.height, 1200);
                     let resizedAction = action.replace("<img", `<img width="${new_dimens.newWidth}" height="${new_dimens.newHeight}"`);
                     // Execute the callback function with the resized action
                     callback(resizedAction, quill_name);
