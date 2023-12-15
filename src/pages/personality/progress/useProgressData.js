@@ -60,24 +60,18 @@ export const useProgressData = (currentUser) => {
     function resizeImageToMaxDimension(width, height, maxDimension) {
         // Calculate the aspect ratio
         const aspectRatio = width / height;
-
+    
         // Determine new dimensions
         let newWidth, newHeight;
-
-        if (width > height) {
-            // If width is the larger dimension
-            newWidth = Math.min(width, maxDimension);
-            newHeight = newWidth / aspectRatio;
-        } else {
-            // If height is the larger dimension or if width and height are equal
-            newHeight = Math.min(height, maxDimension);
-            newWidth = newHeight * aspectRatio;
-        }
-
+    
+        // If width is the larger dimension or if width and height are equal
+        newWidth = Math.min(width, maxDimension);
+        newHeight = newWidth / aspectRatio;
+    
         // Ensuring that dimensions are integers
         newWidth = Math.round(newWidth);
         newHeight = Math.round(newHeight);
-
+    
         return { newWidth, newHeight };
     }
 
@@ -94,7 +88,7 @@ export const useProgressData = (currentUser) => {
 
                 // Once the image is loaded, calculate the new dimensions
                 img.onload = function () {
-                    let new_dimens = resizeImageToMaxDimension(img.width, img.height, 500);
+                    let new_dimens = resizeImageToMaxDimension(img.width, img.height, 1000);
                     let resizedAction = action.replace("<img", `<img width="${new_dimens.newWidth}" height="${new_dimens.newHeight}"`);
                     // Execute the callback function with the resized action
                     callback(resizedAction);
