@@ -10,6 +10,7 @@ import ForgotPassword from "./components/ForgotPassword"
 import Deadlines from './pages/personality/deadlines/Deadlines';
 import Papers from './pages/personality/papers/Papers';
 import PaperInfo from './pages/personality/papers/PaperInfo';
+// import DailySchedule from './pages/personality/daily/DailySchedule.py'
 
 const App = () => {
   return (
@@ -25,7 +26,7 @@ const App = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/papers" element={<Papers />} />
           <Route path="paperinfo/:paper_id" element={<PaperInfo />} />
-          {/* <Route path="/scheduler" element={<Scheduler />} /> */}
+          {/* <Route path="/schedule" element={<DailySchedule />} /> */}
           
         </Route>
       </Routes>
