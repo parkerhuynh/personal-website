@@ -306,9 +306,10 @@ def get_papers(user_id):
     try:
         connection = make_conn()
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM papers WHERE user_id = {user_id}"
+            query = f"SELECT id, paper, author, name, conference,year, img_encoder, ques_encoder, fusion, category, datasets, results, paperid FROM papers WHERE user_id = {user_id}"
             cursor.execute(query)
         results = cursor.fetchall()
+        print(results)
         results = pd.DataFrame(results)
         results["datasets"] = results["datasets"].apply(lambda x:x.split(', ') )
         results["results"] = results["results"].apply(lambda x:x.split(', ') )
