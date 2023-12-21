@@ -49,13 +49,12 @@ function App() {
     }
 
     const addTask = () => {
-        console.log(newTask)
         if ((newTask == "<p><br></p>") || (newTask == "")) {
             alert("Input the tasks")
         } else {
             const taskData = {
                 date: moment(newDate).format("YYYY-MM-DD"),
-                task: newTask,
+                task: newTask.replace(/<br\s*\/?>/gi, ''),
                 user_id: userInfo.id,
                 task_id: generateRandomCode()
 
@@ -124,6 +123,14 @@ function App() {
         quillInputHandel(e, (progress) => {
             setNewTask(progress);
         });
+    };
+
+    const handleKeyPress = (e) => {
+        // Check if 'Enter' is pressed without the 'Shift' key
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevents the default action of the Enter key in a textarea (new line)
+            addTask();
+        }
     };
 
     const handleDateChange = (date, item) => {
@@ -333,6 +340,7 @@ function App() {
                         value={newTask}
                         onChange={handleInputChange}
                         modules={modules}
+                        onKeyDown={handleKeyPress}
                     />
 
                     <div class="d-flex justify-content-center mt-3">
