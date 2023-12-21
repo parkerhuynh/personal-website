@@ -153,8 +153,10 @@ def add_progress():
         connection.commit()
         return jsonify({"message": "Progress added successfully"}), 200
     
-@app.route('/get_progress/<user_id>', methods=['POST','GET'])
-def get_progress(user_id):
+@app.route('/get_progress/<user_id>/<days>', methods=['POST','GET'])
+def get_progress(user_id, days):
+    if days != "all":
+        days = int(days)
     connection = make_conn()
     with connection.cursor() as cursor:
         query = f"SELECT * FROM progress WHERE user_id = {user_id}"
@@ -163,21 +165,13 @@ def get_progress(user_id):
     if len(results) == 0:
         return jsonify([])
     results = pd.DataFrame(results)
+
+    if days != "all":
+        current_date = pd.Timestamp.now().normalize()
+        three_days_ago = current_date - pd.Timedelta(days=days)
+        results['created_normalized'] = results['created_at'].dt.normalize()
+        results = results[results['created_normalized'] >= three_days_ago]
     results['created_at'] = results['created_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
-    # results['created_at'] = results['created_at'].map(day_process)
-    # ##print("-----------------------")
-    # #print(results['created_at'] )
-    
-
-    # if day != "all":
-    #     results['created_at_temp'] = results['created_at'].dt.date
-    #     sydney_timezone = pytz.timezone('Australia/Sydney')
-    #     current_datetime_sydney = datetime.now(sydney_timezone).date()
-
-    #     threshold_datetime = current_datetime_sydney - timedelta(days=int(day))
-    #     results = results[results['created_at_temp'] > threshold_datetime]
-
-    # results['created_at'] =results['created_at'].apply(lambda x: x.strftime("%d-%m-%Y %H:%M:%S %z"))
     results = results.to_dict("records")
     return jsonify(results)
 

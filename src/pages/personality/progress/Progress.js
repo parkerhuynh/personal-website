@@ -11,8 +11,8 @@ window.katex = katex;
 const Progress = () => {
     const { currentUser } = useAuth();
     const [inputData, setInputData] = useState({});
-    const { userInfo, progress, setProgress, fetchUserData, isLoading, quillInputHandel } = useProgressData(currentUser);
-
+    const { userInfo, progress, setProgress, fetchUserData, isLoading, quillInputHandel, processProgressData, userInfoResponse } = useProgressData(currentUser);
+    const [dayhistory, setdayhistory] = useState(3);
 
 
     // Function to handle form submission
@@ -28,14 +28,17 @@ const Progress = () => {
         try {
             const response = await axios.post('/add_progress', payload, {
                 headers: { 'Content-Type': 'application/json' },
-            });
+            })
+            const progressResponse = await axios.get(`/get_progress/${userInfo.id}/${dayhistory}`)
+            setProgress(processProgressData(progressResponse.data))
+            
             console.log('Success:', response.data);
             setInputData({
                 objective: '',
                 progress: '',
                 important: false
             });
-            fetchUserData()
+            
         } catch (error) {
             console.error('Error:', error);
         }
@@ -108,6 +111,10 @@ const Progress = () => {
                                     fetchUserData={fetchUserData}
                                     setProgress={setProgress}
                                     quillInputHandel={quillInputHandel}
+                                    processProgressData = {processProgressData}
+                                    userInfo={userInfo}
+                                    dayhistory={dayhistory}
+                                    setdayhistory={setdayhistory}
                                 />
                             </div>
                         )}
