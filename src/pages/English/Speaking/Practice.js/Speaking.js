@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../../components/AuthContext';
+import { useAuth } from '../../../../components/AuthContext.js';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 
 import OpenAI from 'openai';

@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router-dom';
-import Header from './Header';
 import { useAuth } from "./AuthContext"
 import axios from 'axios'
 import Navbar_login from './Navbar_login';

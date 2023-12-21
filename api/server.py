@@ -403,21 +403,36 @@ def delete_task(task_id):
         connection.commit()
     return jsonify({'message': 'Task deleted'})
 
-#ENGLISH PROCESS -------------------------------------------------------------------------------------------------------
+#SPEAKING ENGLISH PROCESS -------------------------------------------------------------------------------------------------------
+@app.route('/get_speaking_para/<user_id>/<option>', methods=['GET'])
+def get_speaking_para(user_id, option):
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        if option == "you":
+            query = f"SELECT * FROM speaking_para WHERE user_id = {user_id}"
+        else:
+            query = f"SELECT * FROM speaking_para"
+        cursor.execute(query)
+    results = cursor.fetchall()
+    results = pd.DataFrame(results)
+    results['created_at'] = results['created_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    results = results.to_dict("records")
+    return jsonify(results)
+
 @app.route('/add_speaking_para', methods=['POST'])
 def add_speaking_para():
+
     try:
         speaking_para_data = request.json
-        
         insert_query = """
-        INSERT INTO speaking_para (user_id, topic, context, created_at)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO speaking_para (user_id, topic, content, para_id, title)
+        VALUES (%s, %s, %s, %s, %s)
         """
-
-        
         data = (
-            speaking_para_data['user_id'], speaking_para_data['topic'], speaking_para_data['context'], speaking_para_data['created_at']
+            speaking_para_data['user_id'], speaking_para_data['topic'], speaking_para_data['content'], 
+            speaking_para_data['para_id'], speaking_para_data['title']
         )
+        
         connection = make_conn()
         with connection.cursor() as cursor:
             cursor.execute(insert_query, data)
@@ -425,5 +440,30 @@ def add_speaking_para():
         return jsonify({'message': 'paper added successfully'}), 200
     except:
         return jsonify({'message': 'wrong'}), 201
+    
+
+
+@app.route('/update_speaking_para', methods=['POST'])
+def update_speaking_para():
+    data = request.get_json()
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = """UPDATE speaking_para
+           SET title = %s, topic = %s, content = %s
+           WHERE para_id = %s"""
+        cursor.execute(query, (data["title"], data["topic"], data["content"], data["para_id"]))
+        connection.commit()
+    return jsonify({"message": "Progress updated successfully"}), 200
+
+@app.route('/delete_speaking_pata/<para_id>', methods=['POST'])
+def delete_speaking_pata(para_id):
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        delete_query = F"DELETE FROM speaking_para WHERE para_id = '{para_id}'"
+        print(delete_query)
+        cursor.execute(delete_query)
+        connection.commit()
+    return Response("success", 200)
+
 if __name__ == "__main__":
     app.run(debug=True, port=8888)

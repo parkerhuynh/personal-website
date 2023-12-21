@@ -4,7 +4,6 @@ import { usePaperData } from './usePaperData';
 import ReactLoading from 'react-loading';
 import PaperForm from './PaperForm';
 import PaperTable from './PaperTable';
-import '../../../App.css';
 import axios from 'axios';
 import katex from 'katex';
 window.katex = katex;

@@ -7,11 +7,12 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import Progress from './pages/personality/progress/Progress';
 import ForgotPassword from "./components/ForgotPassword"
+
 import Deadlines from './pages/personality/deadlines/Deadlines';
 import Papers from './pages/personality/papers/Papers';
 import PaperInfo from './pages/personality/papers/PaperInfo';
-// import Speaking from './pages/English/Speaking/Speaking'
-import ListToDo from './pages/personality/list_todo/ListToDo'
+import ListToDo from './pages/personality/list_todo/ListToDo';
+import SpeakingPara from './pages/English/Speaking/paragraphs/Paragraphs'
 
 const App = () => {
   return (
@@ -19,7 +20,7 @@ const App = () => {
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
+        <Route index element={<Home />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/progress" element={<Progress />} />
@@ -27,10 +28,9 @@ const App = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/papers" element={<Papers />} />
           <Route path="paperinfo/:paper_id" element={<PaperInfo />} />
-          <Route path="list_todo" element={<ListToDo />} />
-          {/* <Route path="/speaking" element={<Speaking />} /> */}
-          
-          
+          <Route path="/list_todo" element={<ListToDo />} />
+          <Route path="/speaking_para" element={<SpeakingPara />} />
+
         </Route>
       </Routes>
       </AuthProvider>
