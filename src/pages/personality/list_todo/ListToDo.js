@@ -44,15 +44,20 @@ function App() {
         item.processed_date = moment(item.date).utc().toDate()
         return item
     }
+    function generateRandomCode() {
+        return [...Array(12)].map(() => Math.random().toString(36)[2]).join('');
+    }
 
     const addTask = () => {
-        if (newTask == "") {
+        console.log(newTask)
+        if ((newTask == "<p><br></p>") || (newTask == "")) {
             alert("Input the tasks")
         } else {
             const taskData = {
                 date: moment(newDate).format("YYYY-MM-DD"),
                 task: newTask,
-                user_id: userInfo.id
+                user_id: userInfo.id,
+                task_id: generateRandomCode()
 
             };
             axios.post('/add_task', taskData)
@@ -183,10 +188,6 @@ function App() {
                 })
                 .catch(error => console.error(error));
         });
-
-
-
-
     };
 
     const handleSave = () => {
@@ -211,10 +212,10 @@ function App() {
         });
     };
 
-    const deleteTask = (id) => {
-        axios.post(`/delete_tasks/${id}`)
+    const deleteTask = (item) => {
+        axios.post(`/delete_tasks/${item.task_id}`)
             .then(response => {
-                setTasks(tasks.filter(task => task.id !== id));
+                setTasks(tasks.filter(task => task.task_id !== item.task_id));
             })
             .catch(error => console.error(error));
     };
@@ -245,7 +246,6 @@ function App() {
 
         } else {
             if (taskDate.format('YYYY-MM-DD') === today) {
-                console.log(task)
                 if ((task.complete === 0) || (task.complete === false)) {
                     backgroundColor = 'rgba(41, 128, 185, 0.3)';
                 } else {
@@ -403,7 +403,7 @@ function App() {
                                         )}
                                     </td>
                                     <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class="text-center">
-                                        <button type="button" onClick={() => deleteTask(task.id)} class="btn btn-outline-danger p-0 m-0 mx-1 d-flex align-items-center justify-content-center" style={{ "border-radius": "50%", "width": MICSIZE, "height": MICSIZE }}>
+                                        <button type="button" onClick={() => deleteTask(task)} class="btn btn-outline-danger p-0 m-0 mx-1 d-flex align-items-center justify-content-center" style={{ "border-radius": "50%", "width": MICSIZE, "height": MICSIZE }}>
                                             <img src={delete_logo} style={{ "border-radius": "50%", "width": IMG_MIC_SIZE, "height": IMG_MIC_SIZE }} />
                                         </button>
                                     </td>

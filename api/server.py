@@ -385,7 +385,7 @@ def add_task():
     
     connection = make_conn()
     with connection.cursor() as cursor:
-        cursor.execute("INSERT INTO list_to_do (date, complete, task, user_id) VALUES (%s, %s, %s, %s)", (str(data['date']), 0, data['task'], data["user_id"]))
+        cursor.execute("INSERT INTO list_to_do (date, complete, task, user_id, task_id) VALUES (%s, %s, %s, %s, %s)", (str(data['date']), 0, data['task'], data["user_id"], data["task_id"]))
         connection.commit()
     return jsonify({'message': 'Task added'})
 
@@ -400,10 +400,11 @@ def update_task():
 
 @app.route('/delete_tasks/<task_id>', methods=['POST'])
 def delete_task(task_id):
+
     
     connection = make_conn()
     with connection.cursor() as cursor:
-        cursor.execute("DELETE FROM list_to_do WHERE id = %s", (task_id))
+        cursor.execute("DELETE FROM list_to_do WHERE task_id = %s", (task_id))
         connection.commit()
     return jsonify({'message': 'Task deleted'})
 
