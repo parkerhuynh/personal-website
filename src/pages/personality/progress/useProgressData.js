@@ -19,7 +19,7 @@ export const useProgressData = (currentUser) => {
         try {
             const userInfoResponse = await axios.get(`/get_user_info/${currentUser.email}`);
             setUserInfo(userInfoResponse.data);
-            const progressResponse = await axios.get(`/get_progress/${userInfoResponse.data.id}/7`);
+            const progressResponse = await axios.get(`/get_progress/${userInfoResponse.data.id}/3`);
             setProgress(processProgressData(progressResponse.data));
         } catch (error) {
             console.error("Error fetching data:", error);
