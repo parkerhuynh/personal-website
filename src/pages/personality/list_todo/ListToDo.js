@@ -156,14 +156,16 @@ function App() {
     };
 
     const handleCompletedChange = (item) => {
+        var check_value = !item.complete
+        check_value = check_value ? 1 : 0;
         const uppdate_task = {
             ...item,
-            complete: !item.complete,
+            complete: check_value
         };
 
         const updatedTasks = tasks.map(task => {
             if (task.task_id === item.task_id) {
-                return { ...task, complete: !item.complete };;
+                return { ...task, complete: check_value };;
             }
             return task;
         });
@@ -203,6 +205,23 @@ function App() {
         setEditField(null)
         setEditingTaskId(null);
     }
+    // const groupByDate = (list_todoArray) => {
+    //     const groups = list_todoArray.reduce((acc, item) => {
+    //         const date = item.date;
+    //         if (!acc[date]) {
+    //             acc[date] = [];
+    //         }
+    //         acc[date].push(item);
+    //         return acc;
+    //     }, {});
+
+    //     return Object.keys(groups).map((date) => {
+    //         return {
+    //             date,
+    //             items: groups[date],
+    //         };
+    //     });
+    // };
     const groupByDate = (list_todoArray) => {
         const groups = list_todoArray.reduce((acc, item) => {
             const date = item.date;
@@ -212,11 +231,17 @@ function App() {
             acc[date].push(item);
             return acc;
         }, {});
-
+    
         return Object.keys(groups).map((date) => {
             return {
                 date,
-                items: groups[date],
+                items: groups[date].sort((a, b) => {
+                    // Sort by completion status first, then by date
+                    if (a.complete === b.complete) {
+                        return moment(a.date).diff(moment(b.date));
+                    }
+                    return a.complete ? 1 : -1;
+                }),
             };
         });
     };
@@ -228,7 +253,7 @@ function App() {
             })
             .catch(error => console.error(error));
     };
-    const sortedTasks = tasks.sort((a, b) => moment(b.date) - moment(a.date))
+    var sortedTasks = tasks.sort((a, b) => moment(b.date) - moment(a.date))
     const groupedListToDo = groupByDate(sortedTasks);
     const groupStripedStyle = (index, task) => {
         // Start and end of the current week
