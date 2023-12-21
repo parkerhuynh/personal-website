@@ -394,7 +394,7 @@ def update_task():
     data = request.json
     connection = make_conn()
     with connection.cursor() as cursor:
-        cursor.execute("UPDATE list_to_do SET date= %s, complete = %s, task = %s WHERE id = %s", (data['date'], data['complete'], data['task'],data['id']))
+        cursor.execute("UPDATE list_to_do SET date= %s, complete = %s, task = %s WHERE task_id = %s", (data['date'], data['complete'], data['task'],data['task_id']))
         connection.commit()
     return jsonify({'message': 'Task updated'})
 

@@ -65,7 +65,9 @@ function App() {
                     setTasks([...tasks, { ...taskData, complete: false }]);
                     setNewTask("");
                     setNewDate(new Date());
-                })
+                }
+                )
+                
                 .catch(error => console.error(error));
         }
     };
@@ -153,7 +155,7 @@ function App() {
         };
 
         const updatedTasks = tasks.map(task => {
-            if (task.id === item.id) {
+            if (task.task_id === item.task_id) {
                 return { ...task, complete: !item.complete };;
             }
             return task;
