@@ -78,7 +78,8 @@ CREATE TABLE IF NOT EXISTS list_to_do (
     user_id INT NOT NULL,
     date TEXT NOT NULL,
     complete TINYINT(1) NOT NULL,
-    task LONGTEXT NOT NULL
+    task LONGTEXT NOT NULL,
+    task_id TEXT NOT NULL
 );
 
 
