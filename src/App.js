@@ -10,7 +10,8 @@ import ForgotPassword from "./components/ForgotPassword"
 import Deadlines from './pages/personality/deadlines/Deadlines';
 import Papers from './pages/personality/papers/Papers';
 import PaperInfo from './pages/personality/papers/PaperInfo';
-// import DailySchedule from './pages/personality/daily/DailySchedule.py'
+// import Speaking from './pages/English/Speaking/Speaking'
+import ListToDo from './pages/personality/list_todo/ListToDo'
 
 const App = () => {
   return (
@@ -26,7 +27,9 @@ const App = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/papers" element={<Papers />} />
           <Route path="paperinfo/:paper_id" element={<PaperInfo />} />
-          {/* <Route path="/schedule" element={<DailySchedule />} /> */}
+          <Route path="list_todo" element={<ListToDo />} />
+          {/* <Route path="/speaking" element={<Speaking />} /> */}
+          
           
         </Route>
       </Routes>

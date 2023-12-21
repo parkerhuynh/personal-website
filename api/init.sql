@@ -57,3 +57,28 @@ CREATE TABLE IF NOT EXISTS papers (
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
 
+-- CREATE TABLE IF NOT EXISTS speaking_para (
+--     id INT AUTO_INCREMENT       PRIMARY KEY,
+--     user_id INT                 NOT NULL,
+--     topic  TEXT                 NOT NULL,
+--     context TEXT                NOT NULL,
+--     created_at TEXT             NOT NULL
+-- );
+
+-- CREATE TABLE IF NOT EXISTS speaking_done (
+--     id INT AUTO_INCREMENT       PRIMARY KEY,
+--     user_id INT                 NOT NULL,
+--     topic  TEXT             NOT NULL,
+--     para_id INT                 NOT NULL,
+--     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
+-- );
+
+CREATE TABLE IF NOT EXISTS list_to_do (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    date TEXT NOT NULL,
+    complete TINYINT(1) NOT NULL,
+    task LONGTEXT NOT NULL
+);
+
+
