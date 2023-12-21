@@ -7,12 +7,12 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 
-const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, quillInputHandel }) => {
+const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, quillInputHandel, processProgressData, userInfo, dayhistory, setdayhistory}) => {
     const [editingId, setEditingId] = useState(null);
     const [tempInputData, setTempInputData] = useState();
     const [field, setField] = useState(null);
     const [filterObjective, setFilterObjective] = useState("all");
-    const [dayhistory, setdayhistory] = useState(3);
+    
     
 
 
@@ -37,10 +37,11 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
 
     
 
-    const handleSelectChange = (e) => {
+    const handleSelectChange = async (e) => {
         const selectedValue = e.target.value;
+        const progressResponse = await axios.get(`/get_progress/${userInfo.id}/${selectedValue}`)
+        setProgress(processProgressData(progressResponse.data))
         setdayhistory(selectedValue);
-        fetchUserData()
     };
 
     const handleSelectObjectiveChange = (e) => {
@@ -97,14 +98,14 @@ const ProgressTable = ({ progress, handleRowDelete, fetchUserData, setProgress, 
         }
     });
 
-    filterData = filterData.filter(item => {
+    // filterData = filterData.filter(item => {
 
-        if (dayhistory === "all") {
-            return true
-        } else if (item.gap < dayhistory) {
-            return true
-        }
-    });
+    //     if (dayhistory === "all") {
+    //         return true
+    //     } else if (item.gap < dayhistory) {
+    //         return true
+    //     }
+    // });
 
     const groupedProgress = groupByDate(filterData);
     const objectives = progress.map(example => example.objective);
