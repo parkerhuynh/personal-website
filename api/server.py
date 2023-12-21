@@ -141,7 +141,7 @@ def get_user_info(email):
     result["username"] = result["username"]
     return result
 
-#PROGRESS PROCESS
+#PROGRESS PROCESS -------------------------------------------------------------------------------------------------------
 @app.route('/add_progress', methods=['POST'])
 def add_progress():
     data = request.json
@@ -205,7 +205,7 @@ def update_progress(progress_id):
         connection.commit()
     return jsonify({"message": "Progress updated successfully"}), 200
 
-#DEALINE PROCESS
+#DEALINE PROCESS -------------------------------------------------------------------------------------------------------
 @app.route('/add-deadline', methods=['POST'])
 def add_deadline():
     data = request.json
@@ -368,6 +368,66 @@ def update_paper():
         connection.commit()
     return jsonify({'message': 'paper added successfully'}), 200
 
+#LIST TO DO ------------------------------------
+@app.route('/get_list_todo/<user_id>', methods=['GET'])
+def get_list_todo(user_id):
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT * FROM list_to_do where user_id={user_id}")
+    tasks = cursor.fetchall()
+    if len(tasks) == 0:
+        return []
+    return jsonify(tasks)
 
+@app.route('/add_task', methods=['POST'])
+def add_task():
+    data = request.json
+    
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        cursor.execute("INSERT INTO list_to_do (date, complete, task, user_id) VALUES (%s, %s, %s, %s)", (str(data['date']), 0, data['task'], data["user_id"]))
+        connection.commit()
+    return jsonify({'message': 'Task added'})
+
+@app.route('/update_task', methods=['POST'])
+def update_task():
+    data = request.json
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE list_to_do SET date= %s, complete = %s, task = %s WHERE id = %s", (data['date'], data['complete'], data['task'],data['id']))
+        connection.commit()
+    return jsonify({'message': 'Task updated'})
+
+@app.route('/delete_tasks/<task_id>', methods=['POST'])
+def delete_task(task_id):
+    
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM list_to_do WHERE id = %s", (task_id))
+        connection.commit()
+    return jsonify({'message': 'Task deleted'})
+
+#ENGLISH PROCESS -------------------------------------------------------------------------------------------------------
+@app.route('/add_speaking_para', methods=['POST'])
+def add_speaking_para():
+    try:
+        speaking_para_data = request.json
+        
+        insert_query = """
+        INSERT INTO speaking_para (user_id, topic, context, created_at)
+        VALUES (%s, %s, %s, %s)
+        """
+
+        
+        data = (
+            speaking_para_data['user_id'], speaking_para_data['topic'], speaking_para_data['context'], speaking_para_data['created_at']
+        )
+        connection = make_conn()
+        with connection.cursor() as cursor:
+            cursor.execute(insert_query, data)
+            connection.commit()
+        return jsonify({'message': 'paper added successfully'}), 200
+    except:
+        return jsonify({'message': 'wrong'}), 201
 if __name__ == "__main__":
     app.run(debug=True, port=8888)

@@ -143,6 +143,10 @@ header {
   display: block;
 }
 
+.task-completed {
+  text-decoration: line-through;
+}
+
 .dropdown .dropdown-submenu {
   position: absolute;
   left: 100%;
