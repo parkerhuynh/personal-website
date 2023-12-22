@@ -5,7 +5,8 @@ import moment from 'moment-timezone';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTrashAlt, faPenToSquare, faFloppyDisk, faBan, faUser, faShuffle, faGlobe } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 
 const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processProgressData }) => {
     const initialFormState = {
@@ -16,7 +17,6 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
     };
     const [temForm, setTemForm] = useState(initialFormState);
     const [editingId, setEditingId] = useState(null);
-    const [field, setField] = useState(null);
     const [paraOption, setParaOption] = useState("you");
     const [topicOption, setTopicOption] = useState("All Topic");
 
@@ -28,9 +28,8 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
         }
     };
 
-    const handleEdit = (item, editfield) => {
+    const handleEdit = (item) => {
         setEditingId(item.id);
-        setField(editfield)
         setTemForm(item)
     };
 
@@ -78,8 +77,8 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
             // Implement user-friendly error handling here
         }
     };
-    const handleSelectParaOptionChange = async (e) => {
-        const selectedValue = e.target.value;
+    const handleSelectParaOptionChange = async (option) => {
+        const selectedValue = option;
         const progressResponse = await axios.get(`/get_speaking_para/${userInfo.id}/${selectedValue}`);
         setSpeakingParaData(processProgressData(progressResponse.data));
         setParaOption(selectedValue);
@@ -103,17 +102,19 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
             return true
         }
     });
+    const handleParaClick = (para_id) => {
+        window.location.href = `/practice/${para_id}`
+    };
+    const handleRandom = async () => {
+        var ramdom_para_id = 0
+        ramdom_para_id = filterPara[Math.floor(Math.random() * filterPara.length)]
+        window.location.href = `/practice/${ramdom_para_id.para_id}`
 
+    };
     return (
         <div>
             <div className="table py-4">
                 <div class="row">
-                    <div class="col-2">
-                        <select value={paraOption} onChange={handleSelectParaOptionChange} class="form-select form-select-sm text-center" aria-label=".form-select-sm example">
-                            <option value="you">Your Paragraphs</option>
-                            <option value="all">All</option>
-                        </select>
-                    </div>
                     <div class="col-2">
                         <select value={topicOption} onChange={handleSelectTopicChange} class="form-select form-select-sm" aria-label=".form-select-sm example">
                             {uniqueTopic.map(topic => (
@@ -121,7 +122,21 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                             ))}
                         </select>
                     </div>
+                    <div class="col-2 d-flex justify-content-start">
 
+                        {(paraOption === "you") ? (
+                            <button onClick={(e) => { handleSelectParaOptionChange("all") }} className="btn btn-sm btn-light text-center me-3">
+                                <FontAwesomeIcon icon={faUser} />
+                            </button>
+                        ) : (
+                            <button onClick={(e) => { handleSelectParaOptionChange("you") }} className="btn btn-sm btn-light text-center me-3">
+                                <FontAwesomeIcon icon={faGlobe} />
+                            </button>
+                        )}
+                        <button onClick={handleRandom} className="btn btn-sm btn-light text-center">
+                            <FontAwesomeIcon icon={faShuffle} />
+                        </button>
+                    </div>
                 </div>
                 <table className="table table-dark table-bordered mt-4">
                     <thead>
@@ -135,10 +150,10 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                     </thead>
                     <tbody>
                         {filterPara.map((item, itemIndex) => (
-                            <tr key={itemIndex} style={{ backgroundColor: rowStripedStyle(item, itemIndex) }}>
+                            <tr onDoubleClick={() => handleParaClick(item.para_id)} key={itemIndex} style={{ backgroundColor: rowStripedStyle(itemIndex) }}>
                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{itemIndex + 1}</td>
                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
-                                    {(editingId === item.id) & (field == "topic") ?
+                                    {(editingId === item.id) ?
                                         (<input
                                             style={{ width: "120px" }}
                                             type="text"
@@ -147,11 +162,13 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                                             onChange={(e) => setTemForm({ ...temForm, topic: e.target.value })}
                                         // onKeyPress={(e) => handleKeyPress(e, item.id)}
                                         />) :
-                                        (<span onDoubleClick={() => handleEdit(item, "topic")}>{item.topic}</span>)
+                                        (<span>
+                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.topic}</Link>
+                                        </span>)
                                     }
                                 </td>
                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                    {(editingId === item.id) & (field == "title") ?
+                                    {(editingId === item.id) ?
                                         (<div>
                                             <div class="py-2">
                                                 <label htmlFor="title" className="text-light">Title:</label>
@@ -178,30 +195,49 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                                                     required
                                                 />
                                             </div>
-
-
                                         </div>
                                         ) :
-                                        (<span onDoubleClick={() => handleEdit(item, "title")}>{item.title}</span>)
+                                        (<span>
+                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.title}</Link>
+                                        </span>)
                                     }
                                 </td>
                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                    {item.date_render}
+                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.date_render}</Link>
                                 </td>
                                 <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                    {editingId === item.id ?
-                                        (<div class="text-center mt-1">
-                                            <button onClick={() => saveEdit(item.id)} className="btn btn-light btn-sm">Save</button>
-                                            <button onClick={() => cancel()} className="btn btn-light btn-sm mt-3">Cancel</button>
+                                    {(item.user_id === userInfo.id) ? (
+                                        <div>
+                                            {editingId === item.id ?
+                                                (<div class="text-center mt-1">
+                                                    <button onClick={() => handleEdit(item.id)} className="btn btn-light btn-sm">
+                                                        <FontAwesomeIcon icon={faFloppyDisk} style={{ color: "#0d0d0d", }} />
+                                                    </button>
+                                                    <button onClick={() => cancel()} className="btn btn-light btn-sm mt-3">
+                                                        <FontAwesomeIcon icon={faBan} style={{ color: "#000000", }} />
+                                                    </button>
+                                                </div>
+                                                ) :
+                                                (
+                                                    <div>
+                                                        <button onClick={() => handleEdit(item)} className="btn btn-sm btn-light text-center">
+                                                            <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#0d0d0d", }} />
+                                                        </button>
+                                                        <button onClick={() => onDelete(item)} className="btn btn-sm btn-light text-center mt-3">
+                                                            <FontAwesomeIcon icon={faTrashAlt} />
+                                                        </button>
+                                                    </div>)
+                                            }
                                         </div>
-                                        ) :
-                                        (
-                                            <div>
-                                                <button onClick={() => onDelete(item)} className="btn btn-sm btn-light text-center">
-                                                    <FontAwesomeIcon icon={faTrashAlt} />
-                                                </button>
-                                            </div>)
-                                    }
+
+                                    ) : (<div>
+                                        <button onClick={() => handleEdit(item)} className="btn btn-sm btn-danger text-center" disabled>
+                                            <FontAwesomeIcon icon={faPenToSquare} />
+                                        </button>
+                                        <button onClick={() => onDelete(item)} className="btn btn-sm btn-danger text-center mt-3" disabled>
+                                            <FontAwesomeIcon icon={faTrashAlt} />
+                                        </button>
+                                    </div>)}
 
                                 </td>
                             </tr>

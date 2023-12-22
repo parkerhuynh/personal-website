@@ -3,43 +3,35 @@ import axios from 'axios';
 import moment from 'moment-timezone';
 
 
-export const useSpeakingData = (currentUser) => {
+export const SpeakingPracticeData = (currentUser, para_id) => {
     // Define state variables
     const [userInfo, setUserInfo] = useState({});
     const [isLoading, setIsLoading] = useState(true);
-    const [PersonalParagraph, SetPersonalParagraph] = useState(true);
-
+    const [para, setPara] = useState({});
+    const [allParaId, setAllParaId] = useState([]);
     useEffect(() => {
         fetchUserData();
     }, [currentUser]);
-
+    
     const fetchUserData = async () => {
         if (!currentUser) return;
-        // setIsLoading(true);
+        setIsLoading(true);
         try {
             const userInfoResponse = await axios.get(`/get_user_info/${currentUser.email}`);
             setUserInfo(userInfoResponse.data);
-            const progressResponse = await axios.get(`/get_progress/${userInfoResponse.data.id}`);
-            SetPersonalParagraph(processProgressData(progressResponse.data));
+
+            const paraResponse = await axios.get(`/get_one_para/${para_id}`);
+            setPara(paraResponse.data[0]);
+
+            const paraIdsResponse = await axios.get(`/get_all_para_id`);
+            setAllParaId(paraIdsResponse.data)
+            
+            
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
             setIsLoading(false);
         }
     };
-
-    const processProgressData = (data) => {
-        data = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        data = data.map((item) => {
-
-            return {
-                ...item,
-            };
-        });
-        return data;
-    };
-
-
-
-    return { userInfo, PersonalParagraph, SetPersonalParagraph, fetchUserData, isLoading };
+    return { userInfo, isLoading, setIsLoading, para, setPara, allParaId};
 };

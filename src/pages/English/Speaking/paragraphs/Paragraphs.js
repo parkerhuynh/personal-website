@@ -31,7 +31,7 @@ function Paragraph() {
           </div>
         ) : (
           <div class="text-light">
-            <h1 class="text-center py-5">Speaking</h1>
+            <h3 class="text-center py-5">Speaking Paragraphs</h3>
             {isLoading ? (null):(<div>
               <div>
                 {addPrara ? (

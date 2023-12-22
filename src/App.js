@@ -9,10 +9,16 @@ import Progress from './pages/personality/progress/Progress';
 import ForgotPassword from "./components/ForgotPassword"
 
 import Deadlines from './pages/personality/deadlines/Deadlines';
-import Papers from './pages/personality/papers/Papers';
-import PaperInfo from './pages/personality/papers/PaperInfo';
 import ListToDo from './pages/personality/list_todo/ListToDo';
+
+import PaperInfo from './pages/personality/papers/PaperInfo';
+import Papers from './pages/personality/papers/Papers';
+
+
 import SpeakingPara from './pages/English/Speaking/paragraphs/Paragraphs'
+import SpeakingPractice from './pages/English/Speaking/Practice/SpeakingPractice'
+
+
 
 const App = () => {
   return (
@@ -30,6 +36,8 @@ const App = () => {
           <Route path="paperinfo/:paper_id" element={<PaperInfo />} />
           <Route path="/list_todo" element={<ListToDo />} />
           <Route path="/speaking_para" element={<SpeakingPara />} />
+
+          <Route path="practice/:para_id" element={<SpeakingPractice />} />
 
         </Route>
       </Routes>

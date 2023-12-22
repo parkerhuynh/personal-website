@@ -414,6 +414,8 @@ def get_speaking_para(user_id, option):
             query = f"SELECT * FROM speaking_para"
         cursor.execute(query)
     results = cursor.fetchall()
+    if len(results) == 0:
+        return []
     results = pd.DataFrame(results)
     results['created_at'] = results['created_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
     results = results.to_dict("records")
@@ -440,8 +442,6 @@ def add_speaking_para():
         return jsonify({'message': 'paper added successfully'}), 200
     except:
         return jsonify({'message': 'wrong'}), 201
-    
-
 
 @app.route('/update_speaking_para', methods=['POST'])
 def update_speaking_para():
@@ -464,6 +464,30 @@ def delete_speaking_pata(para_id):
         cursor.execute(delete_query)
         connection.commit()
     return Response("success", 200)
+
+@app.route('/get_one_para/<para_id>', methods=['POST','GET'])
+def get_one_para(para_id):
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_para WHERE para_id = '{para_id}'"
+        cursor.execute(query)
+    results = cursor.fetchall()
+    if len(results) > 0:
+        return jsonify(results)
+    else:
+        return Response("error", 403)
+
+@app.route('/get_all_para_id', methods=['POST','GET'])
+def get_all_para_id():
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT para_id,user_id FROM speaking_para"
+        cursor.execute(query)
+    results = cursor.fetchall()
+    if len(results) > 0:
+        return jsonify(results)
+    else:
+        return Response("error", 403)
 
 if __name__ == "__main__":
     app.run(debug=True, port=8888)
