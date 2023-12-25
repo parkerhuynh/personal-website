@@ -7,7 +7,6 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import DeadlineForm from './DeadlineForm';
 import DeadlinesTable from './DeadlinesTable';
 import useUserData from './useUserData';
-import '../../../App.css';
 
 const Progress = () => {
     const { currentUser } = useAuth();

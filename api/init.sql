@@ -57,22 +57,6 @@ CREATE TABLE IF NOT EXISTS papers (
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
 
--- CREATE TABLE IF NOT EXISTS speaking_para (
---     id INT AUTO_INCREMENT       PRIMARY KEY,
---     user_id INT                 NOT NULL,
---     topic  TEXT                 NOT NULL,
---     context TEXT                NOT NULL,
---     created_at TEXT             NOT NULL
--- );
-
--- CREATE TABLE IF NOT EXISTS speaking_done (
---     id INT AUTO_INCREMENT       PRIMARY KEY,
---     user_id INT                 NOT NULL,
---     topic  TEXT             NOT NULL,
---     para_id INT                 NOT NULL,
---     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
--- );
-
 CREATE TABLE IF NOT EXISTS list_to_do (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -81,5 +65,49 @@ CREATE TABLE IF NOT EXISTS list_to_do (
     task LONGTEXT NOT NULL,
     task_id TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS speaking_para (
+    id INT AUTO_INCREMENT       PRIMARY KEY,
+    user_id INT                 NOT NULL,
+    para_id TEXT                NOT NULL,
+    title  TEXT                 NOT NULL,
+    topic  TEXT                 NOT NULL,
+    content TEXT                NOT NULL,
+    level TEXT                  NOT NULL,
+    created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
+);
+
+CREATE TABLE IF NOT EXISTS speaking_events (
+    id INT AUTO_INCREMENT       PRIMARY KEY,
+    user_id INT                 NOT NULL,
+    para_id TEXT                NOT NULL,
+    duration DOUBLE            NOT NULL,
+    index_para DOUBLE                   NOT NULL,
+    level DOUBLE                  NOT NULL,
+    word TEXT                   NOT NULL,
+    created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
+);
+
+CREATE TABLE IF NOT EXISTS words (
+    id INT AUTO_INCREMENT       PRIMARY KEY,
+    user_id INT                 NOT NULL,
+    para_id TEXT                NOT NULL,
+    checking_word TEXT          NOT NULL,
+    speaking_word TEXT          NOT NULL,
+    index_para DOUBLE           NOT NULL,
+    created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
+);
+
+CREATE TABLE IF NOT EXISTS speaking_done (
+    id INT AUTO_INCREMENT       PRIMARY KEY,
+    user_id INT                 NOT NULL,
+    para_id TEXT                 NOT NULL,
+    duration DOUBLE            NOT NULL,
+    transcript TEXT            NOT NULL,
+    skip INT            NOT NULL,
+    created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
+);
+
+
 
 
