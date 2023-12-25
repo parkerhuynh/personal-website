@@ -3,8 +3,9 @@ import { useAuth } from "./AuthContext"
 import axios from 'axios'
 import Navbar_login from './Navbar_login';
 import Navbar_nologin from './Navbar_nologin';
+import Navbar_private from './Navbar_private';
 import React, { useState, useEffect } from 'react';
-
+import { private_members } from "../private_members";
 import { Link } from 'react-router-dom';
 const Layout = () => {
   const { currentUser, logout } = useAuth()
@@ -25,7 +26,6 @@ const Layout = () => {
       setUserInfo(response.data)
     }
   };
- 
   return (
     <div>
       <div class="d-flex bg-dark justify-content-between">
@@ -44,7 +44,13 @@ const Layout = () => {
 
                   </div>
                 </div>
-              ) : (<Navbar_login />)}
+              ) : (
+              <>
+              {private_members.includes(currentUser.email)? (
+                <Navbar_private />
+              ): (<Navbar_login />)}
+              </>)
+              }
             </div>
           </div>
         </div>

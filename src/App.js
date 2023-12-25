@@ -19,6 +19,8 @@ import SpeakingPara from './pages/English/Speaking/paragraphs/Paragraphs'
 import SpeakingPractice from './pages/English/Speaking/Practice/SpeakingPractice'
 import SpeakingStatistic from './pages/English/Speaking/Statistic/SpeakingStatistic'
 
+import ChatGPT from './pages/Chatgpt/ChatGpt'
+
 
 const App = () => {
   return (
@@ -38,6 +40,8 @@ const App = () => {
           <Route path="/speaking_para" element={<SpeakingPara />} />
           <Route path="practice/:para_id" element={<SpeakingPractice />} />
           <Route path="/speaking_statistic" element={<SpeakingStatistic />} />
+
+          <Route path="/chatgpt" element={<ChatGPT />} />
 
         </Route>
       </Routes>
