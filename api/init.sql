@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS speaking_events (
     created_at TIMESTAMP(6)     DEFAULT CURRENT_TIMESTAMP(6)
 );
 
-CREATE TABLE IF NOT EXISTS words (
+CREATE TABLE IF NOT EXISTS speaking_words (
     id INT AUTO_INCREMENT       PRIMARY KEY,
     user_id INT                 NOT NULL,
     para_id TEXT                NOT NULL,
