@@ -427,12 +427,12 @@ def add_speaking_para():
     try:
         speaking_para_data = request.json
         insert_query = """
-        INSERT INTO speaking_para (user_id, topic, content, para_id, title)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO speaking_para (user_id, topic, content, para_id, title, level)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """
         data = (
             speaking_para_data['user_id'], speaking_para_data['topic'], speaking_para_data['content'], 
-            speaking_para_data['para_id'], speaking_para_data['title']
+            speaking_para_data['para_id'], speaking_para_data['title'], speaking_para_data['level']
         )
         
         connection = make_conn()
@@ -449,9 +449,9 @@ def update_speaking_para():
     connection = make_conn()
     with connection.cursor() as cursor:
         query = """UPDATE speaking_para
-           SET title = %s, topic = %s, content = %s
+           SET title = %s, topic = %s, content = %s, level = %s 
            WHERE para_id = %s"""
-        cursor.execute(query, (data["title"], data["topic"], data["content"], data["para_id"]))
+        cursor.execute(query, (data["title"], data["topic"], data["content"], data["level"], data["para_id"]))
         connection.commit()
     return jsonify({"message": "Progress updated successfully"}), 200
 
@@ -488,6 +488,259 @@ def get_all_para_id():
         return jsonify(results)
     else:
         return Response("error", 403)
+    
+@app.route('/add_speaking_event', methods=['POST'])
+def add_speaking_event():
+    try:
+        speaking_para_data = request.json
+        insert_query = """
+        INSERT INTO speaking_events (user_id, para_id, duration, level, word, index_para)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        data = (
+            speaking_para_data['user_id'], speaking_para_data['para_id'], 
+            speaking_para_data['duration'], speaking_para_data['level'], speaking_para_data['word'], speaking_para_data['index_para']
+        )
+        
+        connection = make_conn()
+        with connection.cursor() as cursor:
+            cursor.execute(insert_query, data)
+            connection.commit()
+        return jsonify({'message': 'paper added successfully'}), 200
+    except:
+        return jsonify({'message': 'wrong'}), 201
+
+@app.route('/add_speaking_word', methods=['POST'])
+def add_speaking_word():
+    try:
+        speaking_para_data = request.json
+        insert_query = """
+        INSERT INTO speaking_words (user_id, para_id, checking_word, speaking_word, index_para)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        data = (
+            speaking_para_data['user_id'], speaking_para_data['para_id'], 
+            speaking_para_data['checking_word'], speaking_para_data['speaking_word'], speaking_para_data['index_para']
+        )
+        
+        connection = make_conn()
+        with connection.cursor() as cursor:
+            cursor.execute(insert_query, data)
+            connection.commit()
+        return jsonify({'message': 'paper added successfully'}), 200
+    except:
+        return jsonify({'message': 'wrong'}), 201
+
+@app.route('/save_completed_speaking', methods=['POST'])
+def save_completed_speaking():
+    try:
+        speaking_para_data = request.json
+        insert_query = """
+        INSERT INTO speaking_done (user_id, para_id, duration, transcript, skip)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        data = (
+            speaking_para_data['user_id'], speaking_para_data['para_id'], 
+            speaking_para_data['duration'], speaking_para_data['transcript'], speaking_para_data['skip']
+        )
+        
+        connection = make_conn()
+        with connection.cursor() as cursor:
+            cursor.execute(insert_query, data)
+            connection.commit()
+        return jsonify({'message': 'paper added successfully'}), 200
+    except:
+        return jsonify({'message': 'wrong'}), 201
+
+
+@app.route('/diff_word_dur_misspell/<user_id>/<day>/<country>/<city>', methods=['POST','GET'])
+def diff_word_dur_misspell(day, user_id, country, city):
+    timezone = f"{country}/{city}"
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_events WHERE user_id={user_id}"
+        cursor.execute(query)
+    event_results = cursor.fetchall()
+    event_results = pd.DataFrame(event_results)
+
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_words WHERE user_id={user_id}"
+        cursor.execute(query)
+    word_results = cursor.fetchall()
+    word_results = pd.DataFrame(word_results)
+    
+    if len(event_results) == 0 or len(word_results) == 0:
+        return []
+    if day != "all":
+        day = int(day)
+        if timezone != 'Australia/Sydney':
+            current_date = pd.Timestamp.now(tz=timezone).normalize()
+        else:
+            current_date = pd.Timestamp.now().normalize()
+        days_ago = current_date - pd.Timedelta(days=day)
+        if timezone != 'Australia/Sydney':
+            event_results["created_at"] = event_results["created_at"].dt.tz_localize('Australia/Sydney')
+            event_results["created_at"] = event_results["created_at"].dt.tz_convert(timezone)
+
+            word_results["created_at"] = word_results["created_at"].dt.tz_localize('Australia/Sydney')
+            word_results["created_at"] = word_results["created_at"].dt.tz_convert(timezone)
+
+        event_results['created_normalized'] = event_results['created_at'].dt.normalize()
+        event_results = event_results[event_results['created_normalized'] >= days_ago]
+        word_results['created_normalized'] = word_results['created_at'].dt.normalize()
+        word_results = word_results[word_results['created_normalized'] >= days_ago]
+
+    if len(event_results) == 0 or len(word_results) == 0:
+        return []
+    
+    event_average_duration = event_results.groupby('word')['duration'].mean().reset_index()
+    event_average_duration = event_average_duration.sort_values(by='duration', ascending=False)
+    unique_word_results = word_results.groupby('checking_word')['speaking_word'].unique().reset_index()
+    word_analysis = pd.merge(event_average_duration, unique_word_results, left_on="word", right_on="checking_word")
+    word_analysis = word_analysis[:50]
+    word_analysis["duration"] = word_analysis["duration"].apply(lambda x: round(x/1000, 2))
+    word_analysis["speaking_word"] = word_analysis["speaking_word"].apply(lambda x: x.tolist())
+    return word_analysis.to_dict("records")
+
+@app.route('/skip_count_words_func/<user_id>/<day>/<country>/<city>', methods=['POST','GET'])
+def skip_count_words_func(user_id, day, country, city):
+    timezone = f"{country}/{city}"
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_events WHERE user_id={user_id}"
+        cursor.execute(query)
+    event_results = cursor.fetchall()
+    event_results = pd.DataFrame(event_results)
+    if len(event_results) ==0:
+        return []
+    
+    if day != "all":
+        day = int(day)
+        if timezone != 'Australia/Sydney':
+            current_date = pd.Timestamp.now(tz=timezone).normalize()
+        else:
+            current_date = pd.Timestamp.now().normalize()
+        days_ago = current_date - pd.Timedelta(days=day)
+        if timezone != 'Australia/Sydney':
+            event_results["created_at"] = event_results["created_at"].dt.tz_localize('Australia/Sydney')
+            event_results["created_at"] = event_results["created_at"].dt.tz_convert(timezone)
+
+        event_results['created_normalized'] = event_results['created_at'].dt.normalize()
+        event_results = event_results[event_results['created_normalized'] >= days_ago]
+        
+    if len(event_results) ==0:
+        return []
+    skip_count_words = event_results[event_results["level"] == 100]["word"].value_counts().reset_index()[:50]
+    return skip_count_words.to_dict("records")
+
+@app.route('/total_speaking_per_day/<user_id>/<day>/<country>/<city>', methods=['POST','GET'])
+def total_speaking_per_day(user_id, day, country, city):
+    timezone = f"{country}/{city}"
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_words WHERE user_id={user_id}"
+        cursor.execute(query)
+    word_results = cursor.fetchall()
+    word_results = pd.DataFrame(word_results)
+    if len(word_results) == 0:
+        return []
+
+    if day != "all":
+        day = int(day)
+        if timezone != 'Australia/Sydney':
+            current_date = pd.Timestamp.now(tz=timezone).normalize()
+        else:
+            current_date = pd.Timestamp.now().normalize()
+
+        days_ago = current_date - pd.Timedelta(days=day)
+
+        if timezone != 'Australia/Sydney':
+            word_results["created_at"] = word_results["created_at"].dt.tz_localize('Australia/Sydney')
+            word_results["created_at"] = word_results["created_at"].dt.tz_convert(timezone)
+        word_results['created_normalized'] = word_results['created_at'].dt.normalize()
+        word_results = word_results[word_results['created_normalized'] >= days_ago]
+
+    if len(word_results) == 0:
+        return []
+
+    word_results['created_at'] = pd.to_datetime(word_results['created_at'])
+    grouped = word_results.groupby(word_results['created_at'].dt.date)
+    total_true_speaking_result = grouped['speaking_word'].agg(
+        total_speaking='count', 
+        true_spelling=lambda x: (word_results.loc[x.index, 'checking_word'] == x).sum())
+    total_true_speaking_result = total_true_speaking_result.reset_index()
+    total_true_speaking_result["created_at"] = pd.to_datetime(total_true_speaking_result["created_at"]).dt.strftime('%Y-%m-%d')
+    total_true_speaking_result["successRate"] = total_true_speaking_result["true_spelling"]/total_true_speaking_result["total_speaking"]
+    total_true_speaking_result["successRate"] = total_true_speaking_result["successRate"].apply(lambda x: round(x, 2))
+    total_true_speaking_result = total_true_speaking_result.rename(columns= {"created_at": "date"})
+    return total_true_speaking_result.to_dict("records")
+
+@app.route('/done_counts_func/<user_id>/<day>/<country>/<city>', methods=['POST','GET'])
+def done_counts_func(user_id, day, country, city):
+    timezone = f"{country}/{city}"
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_done WHERE user_id={user_id}"
+        cursor.execute(query)
+    done_results = cursor.fetchall()
+    done_results = pd.DataFrame(done_results)
+    
+    if len(done_results) == 0:
+        return []
+
+    if day != "all":
+        day = int(day)
+        if timezone != 'Australia/Sydney':
+            current_date = pd.Timestamp.now(tz=timezone).normalize()
+        else:
+            current_date = pd.Timestamp.now().normalize()
+
+        days_ago = current_date - pd.Timedelta(days=day)
+
+        if timezone != 'Australia/Sydney':
+            done_results["created_at"] = done_results["created_at"].dt.tz_localize('Australia/Sydney')
+            done_results["created_at"] = done_results["created_at"].dt.tz_convert(timezone)    
+        done_results['created_normalized'] = done_results['created_at'].dt.normalize()
+        done_results = done_results[done_results['created_normalized'] >= days_ago]
+    if len(done_results) == 0:
+        return []
+    done_results['created_normalized'] = done_results['created_at'].dt.normalize()
+    done_counts = done_results["created_normalized"].value_counts().reset_index()
+    done_counts["created_normalized"] = pd.to_datetime(done_counts["created_normalized"]).dt.strftime('%Y-%m-%d')
+    done_counts = done_counts.rename(columns={"created_normalized": "date"})
+    return done_counts.to_dict("records")
+
+@app.route('/skip_count_per_day_func/<user_id>/<day>/<country>/<city>', methods=['POST','GET'])
+def skip_count_per_day_func(user_id, day, country, city):
+    timezone = f"{country}/{city}"
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_events WHERE user_id={user_id}"
+        cursor.execute(query)
+    event_results = cursor.fetchall()
+    event_results = pd.DataFrame(event_results)
+
+    if len(event_results) ==0:
+        return []
+    if day != "all":
+        day = int(day)
+        if timezone != 'Australia/Sydney':
+            current_date = pd.Timestamp.now(tz=timezone).normalize()
+        else:
+            current_date = pd.Timestamp.now().normalize()
+        days_ago = current_date - pd.Timedelta(days=day)
+        if timezone != 'Australia/Sydney':
+            event_results["created_at"] = event_results["created_at"].dt.tz_localize('Australia/Sydney')
+            event_results["created_at"] = event_results["created_at"].dt.tz_convert(timezone)
+
+        event_results['created_normalized'] = event_results['created_at'].dt.normalize()
+        event_results = event_results[event_results['created_normalized'] >= days_ago]
+        
+    event_results['created_normalized'] = event_results['created_at'].dt.normalize()
+    skip_count_per_day = event_results[event_results['level'] == 100].groupby('created_normalized').size().reset_index()
+    skip_count_per_day = skip_count_per_day.rename(columns= {"created_normalized": "date", 0: "count"})
+    skip_count_per_day["date"] = pd.to_datetime(skip_count_per_day["date"]).dt.strftime('%Y-%m-%d')
+    return skip_count_per_day.to_dict("records")
 
 if __name__ == "__main__":
     app.run(debug=True, port=8888)

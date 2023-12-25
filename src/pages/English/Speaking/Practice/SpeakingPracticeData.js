@@ -7,11 +7,26 @@ export const SpeakingPracticeData = (currentUser, para_id) => {
     // Define state variables
     const [userInfo, setUserInfo] = useState({});
     const [isLoading, setIsLoading] = useState(true);
-    const [para, setPara] = useState({});
     const [allParaId, setAllParaId] = useState([]);
+
+    const initialFormState = {
+        user_id: userInfo.id,
+        topic: '',
+        title: '',
+        content: ''
+    };
+    const [para, setPara] = useState(initialFormState);
     useEffect(() => {
         fetchUserData();
     }, [currentUser]);
+
+    function createWordObjects(wordsList) {
+        return wordsList.map((word, index) => {
+            return { word: word, id: index, level: -1 };
+        });
+    }
+
+    
     
     const fetchUserData = async () => {
         if (!currentUser) return;
@@ -25,8 +40,9 @@ export const SpeakingPracticeData = (currentUser, para_id) => {
 
             const paraIdsResponse = await axios.get(`/get_all_para_id`);
             setAllParaId(paraIdsResponse.data)
+
             
-            
+
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {

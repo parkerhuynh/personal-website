@@ -41,7 +41,8 @@ function Paragraph() {
                       Hide
                     </button>
                   </div>
-                  <SpeakingDataForm userInfo={userInfo} paragraphs={paragraphs} setSpeakingParaData={setSpeakingParaData}/>
+                  <SpeakingDataForm userInfo={userInfo} paragraphs={paragraphs} setSpeakingParaData={setSpeakingParaData}
+                  processProgressData={processProgressData}/>
                 </div>
                 
                 ): (

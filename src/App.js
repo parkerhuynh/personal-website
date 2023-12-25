@@ -17,7 +17,7 @@ import Papers from './pages/personality/papers/Papers';
 
 import SpeakingPara from './pages/English/Speaking/paragraphs/Paragraphs'
 import SpeakingPractice from './pages/English/Speaking/Practice/SpeakingPractice'
-
+import SpeakingStatistic from './pages/English/Speaking/Statistic/SpeakingStatistic'
 
 
 const App = () => {
@@ -36,8 +36,8 @@ const App = () => {
           <Route path="paperinfo/:paper_id" element={<PaperInfo />} />
           <Route path="/list_todo" element={<ListToDo />} />
           <Route path="/speaking_para" element={<SpeakingPara />} />
-
           <Route path="practice/:para_id" element={<SpeakingPractice />} />
+          <Route path="/speaking_statistic" element={<SpeakingStatistic />} />
 
         </Route>
       </Routes>
