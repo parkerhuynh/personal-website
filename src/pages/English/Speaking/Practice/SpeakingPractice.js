@@ -6,7 +6,7 @@ import { SpeakingPracticeData } from './SpeakingPracticeData.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faTrashAlt, faPenToSquare, faTable, faFloppyDisk, faForward,
-    faBan, faGlobe, faUser, faShuffle, faMicrophone, faRetweet
+    faBan, faGlobe, faUser, faShuffle, faMicrophone, faRetweet, faChartSimple
 } from '@fortawesome/free-solid-svg-icons';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { ordinalToNumber } from "./ordinalToNumber"
@@ -176,6 +176,9 @@ function SpeakingPractice() {
                 window.location.href = `/practice/${ramdom_para_id.para_id}`
             }
         }
+    };
+    const handleProfile = async () => {
+        window.location.href = `/speaking_statistic`
     };
 
     const saveSpeakingEvent = async (completed_word, word_level, word_duration, currentId) => {
@@ -590,6 +593,9 @@ function SpeakingPractice() {
                                                         <h5 class="card-title text-light text-center">{para.topic}</h5>
                                                     </div>
                                                     <div class="col-1 d-flex justify-content-end">
+                                                        <button onClick={handleProfile} className="btn btn-sm btn-light text-center me-3">
+                                                            <FontAwesomeIcon icon={faChartSimple} />
+                                                        </button>
                                                         {userOption ? (
                                                             <button onClick={handleUserOption} className="btn btn-sm btn-light text-center me-3">
                                                                 <FontAwesomeIcon icon={faUser} />

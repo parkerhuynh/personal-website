@@ -12,6 +12,42 @@ export const menuItems_login = [
     {
       title: 'List To Do',
       url: 'list_todo'
+    }]
+  },
+  {
+    title: 'English',
+    submenu: [
+      {
+        title: 'Speaking',
+        submenu: [
+          {
+            title: "Paragraphs",
+            url: "speaking_para"
+          },
+          {
+            title: "Statistic",
+            url: "speaking_statistic"
+          },
+        ],
+      },
+    ],
+  },
+]
+
+export const menuItems_private = [
+  {
+    title: "Personality",
+    submenu: [{
+      title: 'Progress',
+      url: 'progress'
+    },
+    {
+      title: 'Deadlines',
+      url: 'deadlines'
+    },
+    {
+      title: 'List To Do',
+      url: 'list_todo'
     },
     {
       title: 'Papers',
@@ -36,6 +72,10 @@ export const menuItems_login = [
       },
     ],
   },
+  {
+    title: "ChatGPT",
+    url: "chatgpt"
+  }
 ]
 
 export const menuItems_nologin = [
