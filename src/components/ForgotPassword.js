@@ -26,6 +26,7 @@ export default function ForgotPassword() {
     setLoading(false)
   }
 
+
   return (
     <div style={{ position: "relative", height: "100vh", width: "100%" }}>
       {/* Background div with blur */}
