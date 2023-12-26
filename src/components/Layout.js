@@ -32,8 +32,8 @@ const Layout = () => {
         <div>
           <div className="nav-area bg-dark">
             <div class="d-flex">
-              <Link to="/" className="logo text-light">
-                Ngoc Dung Huynh
+              <Link to="/" className="logo text-light mx-5">
+                NDH
               </Link>
               {currentUser === null ? (
                 <div >
