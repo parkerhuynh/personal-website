@@ -77,10 +77,10 @@ export const menuItems_private = [
     url: "vocabulary"
     }],
   },
-  {
-    title: "ChatGPT",
-    url: "chatgpt"
-  }
+  // {
+  //   title: "ChatGPT",
+  //   url: "chatgpt"
+  // }
 ]
 
 export const menuItems_nologin = [
