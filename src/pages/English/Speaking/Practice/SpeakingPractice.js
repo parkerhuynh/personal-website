@@ -561,7 +561,7 @@ function SpeakingPractice() {
         display: show ? 'block' : 'none',
         position: 'absolute',
         backgroundColor: '#f9f9f9',
-        width: '500px',
+        width: '1000px',
         boxShadow: '0px 8px 16px 0px rgba(0,0,0,0.2)',
         padding: '12px 16px',
         zIndex: 1,
@@ -680,6 +680,22 @@ function SpeakingPractice() {
                                                             </button>
                                                             to save its meanings. 
                                                         </li>
+                                                        <li class="my-3">
+                                                            Click a word in the paragraph to show its pronunciation and its meanings. Click
+                                                            <button type="button" style={{ "border-radius": "50%" }} class="m-1 btn btn-outline-dark btn-sm">
+                                                                <FontAwesomeIcon icon={faPlus} flip size="2xs" />
+                                                            </button>
+                                                            to save its meanings. 
+                                                        </li>
+                                                        <li class="my-3">
+                                                        Words spoken <span class="text-success"><b>up to 5 times  </b> </span>are highlighted in <span class="text-success"><b>green</b></span>, 
+                                                        those spoken between <span class="text-info"><b>6 and 20 times</b>  </span>are highlighted in <span class="text-info"> <b> blue</b></span>.
+                                                        Words repeated more than <span class="text-warning"><b>20 but less than 35 times</b>  </span>are in <span class="text-warning"><b>yellow</b></span>
+                                                        , while those spoken between <span style={{color:"#DC7633"}} ><b>35 and 50 times </b></span>are in <span style={{color:"#DC7633"}} ><b>orange </b></span>. 
+                                                        Words that are <span class="text-danger"><b>not spoken and skipped </b> </span>  are marked in <span class="text-danger"><b>red </b> </span>.
+                                                        </li>
+
+                                                        
                                                     </ul>
                                                 </div>
                                             </button></div>
