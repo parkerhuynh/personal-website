@@ -5,7 +5,7 @@ import axios from 'axios';
 import { SpeakingPracticeData } from './SpeakingPracticeData.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faTrashAlt, faPenToSquare, faTable, faFloppyDisk, faForward, faPlus,
+    faTrashAlt, faPenToSquare, faTable, faFloppyDisk, faForward, faPlus, faInfo,
     faBan, faGlobe, faUser, faShuffle, faMicrophone, faRetweet, faChartSimple, faVolumeHigh
 } from '@fortawesome/free-solid-svg-icons';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
@@ -46,6 +46,7 @@ function SpeakingPractice() {
     const [selectedWord, setSelectedWord] = useState('')
     const [definitionWord, setdefinitionWord] = useState([])
     const containerRef = useRef(null);
+    const [show, setShow] = useState(false);
 
 
 
@@ -449,7 +450,7 @@ function SpeakingPractice() {
         }
     }
 
-    const textSpeech = (word) => {
+    const textSpeech = async (word) => {
         return new Promise((resolve, reject) => {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(word);
@@ -528,7 +529,7 @@ function SpeakingPractice() {
 
                 setSelectedWord(selected_Word)
                 fetchPronunciation(selected_Word)
-            
+
 
             }
         }
@@ -547,6 +548,26 @@ function SpeakingPractice() {
             console.error('Error submitting form:', error);
         }
     }
+
+    const dropdownStyle = {
+        position: 'relative',
+        display: 'inline-block',
+        width: "40px"
+    };
+
+
+
+    const dropdownContentStyle = {
+        display: show ? 'block' : 'none',
+        position: 'absolute',
+        backgroundColor: '#f9f9f9',
+        width: '500px',
+        boxShadow: '0px 8px 16px 0px rgba(0,0,0,0.2)',
+        padding: '12px 16px',
+        zIndex: 1,
+        "border-radius": "10px",
+        textAlign: 'left'
+    };
     return (
         <div className={'background-image-repeat'}>
             <div class="container pb-5">
@@ -566,7 +587,102 @@ function SpeakingPractice() {
                                 <div ref={containerRef} class="card" style={{ backgroundColor: 'rgb(0, 1, 2, 0.5)' }}>
                                     <div class="card-body">
                                         <div class="row">
-                                            <div class="col-1"> </div>
+                                            <div class="col-1"> <button style={dropdownStyle} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} className="mx-3 btn btn-sm btn-light text-center">
+                                                <FontAwesomeIcon icon={faInfo} />
+                                                <div class="text-left" style={dropdownContentStyle}>
+                                                    <ul>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faTable} />
+                                                            to link to your paragraph table.
+
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faPenToSquare} />
+                                                            to edit your paragraphs. <span class="text-danger"> You cannot edit the paragraphs created by other users.</span>
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faTrashAlt} />
+                                                            to delete your paragraphs. <span class="text-danger"> You cannot delete the paragraphs created by other users.</span>
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faChartSimple} />
+                                                            to show your statistic.
+
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faUser} />
+                                                            to show only your paragraphs or Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faGlobe} />
+                                                            to show all paragraphs.
+
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faShuffle} />
+                                                            to randomly select a paragraph to practice.
+                                                        </li>
+
+
+
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faFloppyDisk} />
+                                                            to save your edit.
+                                                        </li>
+
+                                                        <li class="my-3">
+                                                            Press
+                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faBan} />
+                                                            to cancel your edit.
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <button type="button" class="btn btn-outline-danger mx-2" >
+                                                                <FontAwesomeIcon icon={faMicrophone} />
+                                                            </button> or <span class="text-info">ENTER </span>
+                                                            to mute your mic.
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <button type="button" class="btn btn-outline-success mx-2" >
+                                                                <FontAwesomeIcon icon={faMicrophone} />
+                                                            </button> or <span class="text-info">ENTER </span>
+                                                            to activate your mic.
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <button type="button" class="btn btn-outline-success mx-2" >
+                                                                <FontAwesomeIcon icon={faRetweet} />
+                                                            </button> or <span class="text-info">R </span>
+                                                            to reset your work.
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press 
+                                                            <span class="text-info"> SPACE </span>
+                                                            to hear the pronunciation of the next word.
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Press
+                                                            <button type="button" class="btn btn-outline-info mx-2" >
+                                                                <FontAwesomeIcon icon={faForward} />
+                                                            </button> or <span class="text-info"> CTRL </span>
+                                                            to skip the next word.
+                                                        </li>
+                                                        <li class="my-3">
+                                                            Click a word in the paragraph to show its pronunciation and its meanings. Click
+                                                            <button type="button" style={{ "border-radius": "50%" }} class="m-1 btn btn-outline-dark btn-sm">
+                                                                <FontAwesomeIcon icon={faPlus} flip size="2xs" />
+                                                            </button>
+                                                            to save its meanings. 
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </button></div>
                                             <div class="col-10">
                                                 {isEditing ? (
                                                     <div class="d-flex justify-content-center">
@@ -686,7 +802,10 @@ function SpeakingPractice() {
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div class="row my-2 text-center"> <h5 class="card-title text-light text-center">{para.level}</h5></div>
+                                                <div class="row my-2 text-center">
+                                                    <h5 class="card-title text-light text-center">{para.level}</h5>
+                                                </div>
+
                                                 <div>
                                                     <pre onClick={handleClick} style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
                                                         {completedWords.map((word, index) => {
@@ -735,7 +854,7 @@ function SpeakingPractice() {
                                                                             "border-radius": "25px"
                                                                         }} class="text-primary " >
                                                                         <h5 class="m-0 p-0 text-center text-dark"><b>{selectedWord}</b></h5>
-                                                                        <p class="m-0 px-3"><b>Pronunciation: {pronunciation}</b> <FontAwesomeIcon class="mx-3" onClick={(e) => { textSpeech(selectedWord) }} icon={faVolumeHigh} style={{ height: "20px", width: "20px" }} size="2xs" /></p>
+                                                                        <p class="m-0 px-3"><b>Pronunciation: {pronunciation}</b> <FontAwesomeIcon class="mx-3" onClick={(e) => { handleSpeechClick(selectedWord) }} icon={faVolumeHigh} style={{ height: "20px", width: "20px" }} size="2xs" /></p>
                                                                         <div>
                                                                             {(definitionWord.length > 0) ? (
                                                                                 <>
@@ -772,8 +891,6 @@ function SpeakingPractice() {
 
                                                                     </div>
                                                                     )}
-
-
                                                                 </span>
                                                             )
                                                         })}
