@@ -309,8 +309,7 @@ function SpeakingPractice() {
     };
 
     const STEPWISE = () => {
-        setshowDropdown(false)
-        setShowDefinitionDropdown(false)
+
         if (breaking_Words.length > 1 & transcript !== "" & state == true) {
             var last_word_speak = normalizeWord(word_processsing(transcript.split(' ').pop()))
             var checking_word = normalizeWord(word_processsing(breaking_Words[currentId]))
@@ -355,7 +354,7 @@ function SpeakingPractice() {
                             completedpart = [...completedpart, newcompletednewWord];
                             setCompletedWords(completedpart);
                             setFailTime(0)
-                            
+
                             setCurrentId(k + 1)
 
                             if (completedpart.length === breaking_Words.length) {
@@ -367,7 +366,6 @@ function SpeakingPractice() {
                                 setDuration(duration)
                                 saveCompletedSpeaking(duration)
                                 setState(false)
-
                                 let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 20
                                 if (warningSkip == false) {
                                     saveCompletedSpeaking(duration)
@@ -382,20 +380,19 @@ function SpeakingPractice() {
             } else {
                 setFailTime(failTime + 1)
                 if (failTime >= 1) {
-                    fetchPronunciation(checking_word)
-                    setshowDropdown(true)
+                    if (!showDropdown) {
+                        fetchPronunciation(checking_word)
+                        setshowDropdown(true)
+                    }
+                    setShowDefinitionDropdown(false)
                 }
             }
         }
-
     };
 
     useEffect(() => {
         STEPWISE()
     }, [transcript, resetTranscript])
-
-
-
 
     const updateDropboxPosition = () => {
         if (nextWord.current) {
@@ -531,7 +528,7 @@ function SpeakingPractice() {
 
                 setSelectedWord(selected_Word)
                 fetchPronunciation(selected_Word)
-                // setPronunciation(pronou)
+            
 
             }
         }
@@ -738,31 +735,31 @@ function SpeakingPractice() {
                                                                             "border-radius": "25px"
                                                                         }} class="text-primary " >
                                                                         <h5 class="m-0 p-0 text-center text-dark"><b>{selectedWord}</b></h5>
-                                                                        <p class="m-0 px-3"><b>Pronunciation: {pronunciation}</b> <FontAwesomeIcon class="mx-3" onClick={(e) => {textSpeech(selectedWord)}} icon={faVolumeHigh} style={{height:"20px", width:"20px"}} size="2xs" /></p>
+                                                                        <p class="m-0 px-3"><b>Pronunciation: {pronunciation}</b> <FontAwesomeIcon class="mx-3" onClick={(e) => { textSpeech(selectedWord) }} icon={faVolumeHigh} style={{ height: "20px", width: "20px" }} size="2xs" /></p>
                                                                         <div>
                                                                             {(definitionWord.length > 0) ? (
                                                                                 <>
                                                                                     <p class="m-0 ps-3"><b>Meanings:</b> </p>
                                                                                     <ol class="m-0 ps-5">
                                                                                         {definitionWord.map((item) => (
-                                                                                            <li class="text-danger">{item.partOfSpeech} 
+                                                                                            <li class="text-danger">{item.partOfSpeech}
                                                                                                 {item.definitions ? (
                                                                                                     <ul class="m-0 px-3 square text-dark" >
-                                                                                                    {item.definitions.slice(0, 3).map((subitem) => (
-                                                                                                        <li>
-                                                                                                            <div class="row">
-                                                                                                                <pre class="text-dark pe-0" style={{ "text-align": "justify", "white-space": "pre-wrap", "width":"85%" }}>{subitem.definition}</pre>
-                                                                                                                <div style={{"width":"10%" }}>
-                                                                                                                    <button type="button" style={{"border-radius": "50%"}} class="btn btn-outline-dark btn-sm ms-0" onClick={(e) => {handleVocaClick(selectedWord, item.partOfSpeech, subitem.definition)}}>
-                                                                                                                        <FontAwesomeIcon icon={faPlus} flip size="2xs" />
-                                                                                                                    </button>
+                                                                                                        {item.definitions.slice(0, 3).map((subitem) => (
+                                                                                                            <li>
+                                                                                                                <div class="row">
+                                                                                                                    <pre class="text-dark pe-0" style={{ "text-align": "justify", "white-space": "pre-wrap", "width": "85%" }}>{subitem.definition}</pre>
+                                                                                                                    <div style={{ "width": "10%" }}>
+                                                                                                                        <button type="button" style={{ "border-radius": "50%" }} class="btn btn-outline-dark btn-sm ms-0" onClick={(e) => { handleVocaClick(selectedWord, item.partOfSpeech, subitem.definition) }}>
+                                                                                                                            <FontAwesomeIcon icon={faPlus} flip size="2xs" />
+                                                                                                                        </button>
+                                                                                                                    </div>
                                                                                                                 </div>
-                                                                                                            </div>
-                                                                                                        </li>
-                                                                                                    ))}
-                                                                                                </ul>
-                                                                                                ):(null)}
-                                                                                                
+                                                                                                            </li>
+                                                                                                        ))}
+                                                                                                    </ul>
+                                                                                                ) : (null)}
+
                                                                                             </li>
                                                                                         ))}
                                                                                     </ol>
