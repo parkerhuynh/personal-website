@@ -5,8 +5,8 @@ import axios from 'axios';
 import { SpeakingPracticeData } from './SpeakingPracticeData.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faTrashAlt, faPenToSquare, faTable, faFloppyDisk, faForward,
-    faBan, faGlobe, faUser, faShuffle, faMicrophone, faRetweet, faChartSimple
+    faTrashAlt, faPenToSquare, faTable, faFloppyDisk, faForward, faPlus,
+    faBan, faGlobe, faUser, faShuffle, faMicrophone, faRetweet, faChartSimple, faVolumeHigh
 } from '@fortawesome/free-solid-svg-icons';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { ordinalToNumber } from "./ordinalToNumber"
@@ -40,7 +40,12 @@ function SpeakingPractice() {
     const [skipWanring, setSkipWanring] = useState(false);
     const [startWordDuration, setWordDuration] = useState(performance.now());
     const [pronunciation, setPronunciation] = useState('');
-
+    const [showDefinitionDropdown, setShowDefinitionDropdown] = useState(false);
+    const [dropboxDefTop, setDropboxDefTop] = useState(0)
+    const [dropboxDefLeft, setDropboxDefLeft] = useState(0)
+    const [selectedWord, setSelectedWord] = useState('')
+    const [definitionWord, setdefinitionWord] = useState([])
+    const containerRef = useRef(null);
 
 
 
@@ -52,6 +57,8 @@ function SpeakingPractice() {
         setSkipcount(0)
         setState(false)
         setFailTime(0)
+        setshowDropdown(false)
+        setShowDefinitionDropdown(false)
     }
 
     const {
@@ -230,11 +237,7 @@ function SpeakingPractice() {
             console.error('Error submitting form:', error);
         }
     }
-    // useEffect(() => {
-    //     const closeDropdown = () => setSelectedWord('');
-    //     document.addEventListener('click', closeDropdown);
-    //     return () => document.removeEventListener('click', closeDropdown);
-    // }, []);
+
 
     const handleSkip = () => {
 
@@ -250,6 +253,7 @@ function SpeakingPractice() {
             setWordDuration(performance.now())
             setFailTime(0)
             setshowDropdown(false)
+            setShowDefinitionDropdown(false)
 
             if (completedpart.length === breaking_Words.length) {
                 let duration = (performance.now() - startTime) / 1000;
@@ -277,6 +281,7 @@ function SpeakingPractice() {
                         setCompletedWords(completedpart);
                         setFailTime(0)
                         setshowDropdown(false)
+                        setShowDefinitionDropdown(false)
                         setCurrentId(k + 1)
 
                         if (completedpart.length === breaking_Words.length) {
@@ -304,6 +309,8 @@ function SpeakingPractice() {
     };
 
     const STEPWISE = () => {
+        setshowDropdown(false)
+        setShowDefinitionDropdown(false)
         if (breaking_Words.length > 1 & transcript !== "" & state == true) {
             var last_word_speak = normalizeWord(word_processsing(transcript.split(' ').pop()))
             var checking_word = normalizeWord(word_processsing(breaking_Words[currentId]))
@@ -318,6 +325,7 @@ function SpeakingPractice() {
                 setWordDuration(performance.now())
                 setFailTime(0)
                 setshowDropdown(false)
+                setShowDefinitionDropdown(false)
 
                 if (completedpart.length === breaking_Words.length) {
                     let duration = (performance.now() - startTime) / 1000;
@@ -328,6 +336,8 @@ function SpeakingPractice() {
                     setDuration(duration)
                     saveCompletedSpeaking(duration)
                     setState(false)
+                    setshowDropdown(false)
+                    setShowDefinitionDropdown(false)
 
                     let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 10
                     setSkipWanring(warningSkip)
@@ -345,7 +355,7 @@ function SpeakingPractice() {
                             completedpart = [...completedpart, newcompletednewWord];
                             setCompletedWords(completedpart);
                             setFailTime(0)
-                            setshowDropdown(false)
+                            
                             setCurrentId(k + 1)
 
                             if (completedpart.length === breaking_Words.length) {
@@ -397,7 +407,6 @@ function SpeakingPractice() {
             setDropboxTop(+ offsetHeight + 3)
             setDropboxLeft(offsetLeft + offsetWidth - 100)
         }
-
     }
     useEffect(() => {
         updateDropboxPosition()
@@ -472,12 +481,17 @@ function SpeakingPractice() {
 
     const fetchPronunciation = async (word) => {
         try {
+            setdefinitionWord([])
+            setPronunciation(word)
             const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
             let data = await response.json();
+
             data = data[0]
-            let phonetics = data["phonetics"]
-            phonetics = phonetics.filter(item => item.text && item.text.trim().length > 0)[0]
-            setPronunciation(phonetics.text); // Adjust according to API response structure
+            let phonetic = data["phonetic"]
+            if (phonetic) {
+                setPronunciation(phonetic); // Adjust according to API response structure
+            }
+            setdefinitionWord(data.meanings)
         } catch (error) {
             setPronunciation(word);
         }
@@ -498,6 +512,44 @@ function SpeakingPractice() {
     useHotkeys('r',
         () => { reset() },
     )
+    const handleClick = async (e) => {
+        if (e.target.tagName === 'SPAN') {
+            const clickedSpan = e.target;
+            const wordRect = clickedSpan.getBoundingClientRect();
+
+            if (containerRef.current) {
+                const containerRect = containerRef.current.getBoundingClientRect();
+                setShowDefinitionDropdown(true)
+                setshowDropdown(false)
+                // Calculate the position relative to the container
+                const relativeX = wordRect.left - containerRect.left;
+                const relativeY = wordRect.top - containerRect.top;
+                let selected_Word = clickedSpan.textContent.trim().split(" ")[0]
+                selected_Word = normalizeWord(word_processsing(selected_Word))
+                setDropboxDefTop(relativeY)
+                setDropboxDefLeft(relativeX)
+
+                setSelectedWord(selected_Word)
+                fetchPronunciation(selected_Word)
+                // setPronunciation(pronou)
+
+            }
+        }
+    };
+
+    const handleVocaClick = async (word, word_type, def_word) => {
+        const formData = {
+            word: word,
+            user_id: userInfo.id,
+            type: word_type,
+            definition: def_word
+        };
+        try {
+            await axios.post('/add_voca', formData);
+        } catch (error) {
+            console.error('Error submitting form:', error);
+        }
+    }
     return (
         <div className={'background-image-repeat'}>
             <div class="container pb-5">
@@ -514,7 +566,7 @@ function SpeakingPractice() {
                         <h1 class="text-center py-5 text-light "> Speaking Practice</h1>
                         {isLoading ? (null) : (
                             <div>
-                                <div class="card" style={{ backgroundColor: 'rgb(0, 1, 2, 0.5)' }}>
+                                <div ref={containerRef} class="card" style={{ backgroundColor: 'rgb(0, 1, 2, 0.5)' }}>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-1"> </div>
@@ -639,7 +691,7 @@ function SpeakingPractice() {
                                                 </div>
                                                 <div class="row my-2 text-center"> <h5 class="card-title text-light text-center">{para.level}</h5></div>
                                                 <div>
-                                                    <pre style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
+                                                    <pre onClick={handleClick} style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
                                                         {completedWords.map((word, index) => {
                                                             return (
                                                                 <span key={index}
@@ -652,9 +704,8 @@ function SpeakingPractice() {
                                                         })}
                                                         {uncompletedWords.map((word, index) => {
                                                             return (
-                                                                <span key={index} 
-                                                                // onClick={(e) => handleWordClick(word, e)} 
-                                                                class="text-light" ref={(index === 0) ? nextWord : null}>
+                                                                <span key={index}
+                                                                    class="text-light" ref={(index === 0) ? nextWord : null}>
                                                                     {word + " "}
                                                                     {(<div style={{
                                                                         "display": displayStyle,
@@ -672,6 +723,59 @@ function SpeakingPractice() {
 
                                                                     </div>
                                                                     )}
+
+                                                                    {(<div
+                                                                        onMouseLeave={() => setShowDefinitionDropdown(false)}
+                                                                        style={{
+                                                                            "display": showDefinitionDropdown ? "block" : "none",
+                                                                            "position": "absolute",
+                                                                            "top": dropboxDefTop + 19,
+                                                                            "left": dropboxDefLeft - 170,
+                                                                            "z-index": "1",
+                                                                            "background-color": 'rgb(250, 250, 250, 0.9)',
+
+                                                                            "width": "400px",
+                                                                            "border-radius": "25px"
+                                                                        }} class="text-primary " >
+                                                                        <h5 class="m-0 p-0 text-center text-dark"><b>{selectedWord}</b></h5>
+                                                                        <p class="m-0 px-3"><b>Pronunciation: {pronunciation}</b> <FontAwesomeIcon class="mx-3" onClick={(e) => {textSpeech(selectedWord)}} icon={faVolumeHigh} style={{height:"20px", width:"20px"}} size="2xs" /></p>
+                                                                        <div>
+                                                                            {(definitionWord.length > 0) ? (
+                                                                                <>
+                                                                                    <p class="m-0 ps-3"><b>Meanings:</b> </p>
+                                                                                    <ol class="m-0 ps-5">
+                                                                                        {definitionWord.map((item) => (
+                                                                                            <li class="text-danger">{item.partOfSpeech} 
+                                                                                                {item.definitions ? (
+                                                                                                    <ul class="m-0 px-3 square text-dark" >
+                                                                                                    {item.definitions.slice(0, 3).map((subitem) => (
+                                                                                                        <li>
+                                                                                                            <div class="row">
+                                                                                                                <pre class="text-dark pe-0" style={{ "text-align": "justify", "white-space": "pre-wrap", "width":"85%" }}>{subitem.definition}</pre>
+                                                                                                                <div style={{"width":"10%" }}>
+                                                                                                                    <button type="button" style={{"border-radius": "50%"}} class="btn btn-outline-dark btn-sm ms-0" onClick={(e) => {handleVocaClick(selectedWord, item.partOfSpeech, subitem.definition)}}>
+                                                                                                                        <FontAwesomeIcon icon={faPlus} flip size="2xs" />
+                                                                                                                    </button>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </li>
+                                                                                                    ))}
+                                                                                                </ul>
+                                                                                                ):(null)}
+                                                                                                
+                                                                                            </li>
+                                                                                        ))}
+                                                                                    </ol>
+                                                                                </>
+
+                                                                            ) : (null)}
+
+
+                                                                        </div>
+
+                                                                    </div>
+                                                                    )}
+
 
                                                                 </span>
                                                             )
