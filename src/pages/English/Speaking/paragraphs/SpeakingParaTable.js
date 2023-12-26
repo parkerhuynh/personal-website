@@ -5,7 +5,7 @@ import moment from 'moment-timezone';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashAlt, faPenToSquare, faFloppyDisk, faBan, faUser, faShuffle, faGlobe } from '@fortawesome/free-solid-svg-icons';
+import { faTrashAlt, faPenToSquare, faFloppyDisk, faBan, faUser, faShuffle, faGlobe, faInfo } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
 const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processProgressData }) => {
@@ -19,6 +19,7 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
     const [editingId, setEditingId] = useState(null);
     const [paraOption, setParaOption] = useState("you");
     const [topicOption, setTopicOption] = useState("All Topic");
+    const [show, setShow] = useState(false);
 
     const rowStripedStyle = (index) => {
         if (index % 2 === 0) {
@@ -40,7 +41,7 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
             var jsonbody = temForm
             const updatedParas = paragraphs.map(para => {
                 if (para.para_id === jsonbody.para_id) {
-                    return { ...para, title: jsonbody.title, topic: jsonbody.topic, content: jsonbody.content, level:  jsonbody.level};
+                    return { ...para, title: jsonbody.title, topic: jsonbody.topic, content: jsonbody.content, level: jsonbody.level };
                 }
                 return para;
             });
@@ -107,10 +108,30 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
     };
     const handleRandom = async () => {
         var ramdom_para_id = 0
-        if (filterPara.length >0) {
+        if (filterPara.length > 0) {
             ramdom_para_id = filterPara[Math.floor(Math.random() * filterPara.length)]
             window.location.href = `/practice/${ramdom_para_id.para_id}`
         }
+    };
+
+    const dropdownStyle = {
+        position: 'relative',
+        display: 'inline-block',
+        width: "40px"
+    };
+
+
+
+    const dropdownContentStyle = {
+        display: show ? 'block' : 'none',
+        position: 'absolute',
+        backgroundColor: '#f9f9f9',
+        width: '500px',
+        boxShadow: '0px 8px 16px 0px rgba(0,0,0,0.2)',
+        padding: '12px 16px',
+        zIndex: 1,
+        "border-radius": "10px",
+        textAlign: 'left'
     };
     return (
         <div>
@@ -126,17 +147,60 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                     <div class="col-2 d-flex justify-content-start">
 
                         {(paraOption === "you") ? (
-                            <button onClick={(e) => { handleSelectParaOptionChange("all") }} className="btn btn-sm btn-light text-center me-3">
+                            <button style={{width:"40px"}}  onClick={(e) => { handleSelectParaOptionChange("all") }} className="btn btn-sm btn-light text-center me-3">
                                 <FontAwesomeIcon icon={faUser} />
                             </button>
                         ) : (
-                            <button onClick={(e) => { handleSelectParaOptionChange("you") }} className="btn btn-sm btn-light text-center me-3">
+                            <button style={{width:"40px"}} onClick={(e) => { handleSelectParaOptionChange("you") }} className="btn btn-sm btn-light text-center me-3">
                                 <FontAwesomeIcon icon={faGlobe} />
                             </button>
                         )}
-                        <button onClick={handleRandom} className="btn btn-sm btn-light text-center">
+                        <button style={{width:"40px"}} onClick={handleRandom} className="btn btn-sm btn-light text-center">
                             <FontAwesomeIcon icon={faShuffle} />
                         </button>
+                        <button style={dropdownStyle}  onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} className="mx-3 btn btn-sm btn-light text-center">
+                            <FontAwesomeIcon icon={faInfo} />
+                            <div class="text-left" style={dropdownContentStyle}>
+                                <ul>
+                                    <li>
+                                    Press
+                                    <FontAwesomeIcon style={{width:"40px"}} icon={faUser} />
+                                    to show only your paragraphs or Press
+                                    <FontAwesomeIcon style={{width:"40px"}} icon={faGlobe} />
+                                    to show all paragraphs.
+
+                                    </li>
+                                    <li class="my-3">
+                                    Press
+                                    <FontAwesomeIcon style={{width:"40px"}} icon={faShuffle} />
+                                    to randomly select a paragraph to practice.
+                                    </li>
+
+                                    <li class="my-3">
+                                    Press
+                                    <FontAwesomeIcon style={{width:"40px"}} icon={faPenToSquare} />
+                                    to edit your paragraphs. <span class="text-danger"> You cannot edit the paragraphs created by other users.</span>
+                                    </li>
+
+                                    <li class="my-3">
+                                    Press
+                                    <FontAwesomeIcon style={{width:"40px"}} icon={faFloppyDisk} />
+                                    to save your edit.
+                                    </li>
+                                    <li class="my-3">
+                                    Press
+                                    <FontAwesomeIcon style={{width:"40px"}} icon={faTrashAlt} />
+                                    to delete your paragraphs. <span class="text-danger"> You cannot delete the paragraphs created by other users.</span>
+                                    </li>
+                                    <li class="my-3">
+                                    Press
+                                    <FontAwesomeIcon style={{width:"40px"}} icon={faBan} />
+                                    to cancel your edit.
+                                    </li>
+                                </ul>
+                            </div>
+                        </button>
+
                     </div>
                 </div>
                 <table className="table table-dark table-bordered mt-4">
@@ -212,19 +276,19 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                                     <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.content.split(' ').length}</Link>
                                 </td>
                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                {(editingId === item.id) ?
+                                    {(editingId === item.id) ?
                                         (<div class="m-2 m-2">
-                                        <label htmlFor="level" name="level" className="text-light">Level:</label>
-                                        <select value={temForm.level} name="level" class="form-select"
-                                        onChange={(e) => setTemForm({ ...temForm, level: e.target.value })}
-                                        aria-label="Default select example">
-                                            <option value="very easy">Very Easy</option>
-                                            <option value="easy">Easy</option>
-                                            <option value="medium">Medium</option>
-                                            <option value="hard">Hard</option>
-                                            <option value="very hard">Very Hard</option>
-                                        </select>
-                                    </div>
+                                            <label htmlFor="level" name="level" className="text-light">Level:</label>
+                                            <select value={temForm.level} name="level" class="form-select"
+                                                onChange={(e) => setTemForm({ ...temForm, level: e.target.value })}
+                                                aria-label="Default select example">
+                                                <option value="very easy">Very Easy</option>
+                                                <option value="easy">Easy</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="hard">Hard</option>
+                                                <option value="very hard">Very Hard</option>
+                                            </select>
+                                        </div>
                                         ) :
                                         (<span>
                                             <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.level}</Link>
