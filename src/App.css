@@ -179,7 +179,9 @@ header {
   filter: blur(3px); 
   z-index: -1;
 }
-
+.container {
+  position: relative;
+}
 .background-image-repeat::after {
   content: '';
   position: absolute;

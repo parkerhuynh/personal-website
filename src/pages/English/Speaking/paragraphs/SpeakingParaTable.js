@@ -107,7 +107,7 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
     };
     const handleRandom = async () => {
         var ramdom_para_id = 0
-        if (filterPara.length >1) {
+        if (filterPara.length >0) {
             ramdom_para_id = filterPara[Math.floor(Math.random() * filterPara.length)]
             window.location.href = `/practice/${ramdom_para_id.para_id}`
         }

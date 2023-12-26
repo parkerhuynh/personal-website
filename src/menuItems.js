@@ -30,7 +30,9 @@ export const menuItems_login = [
           },
         ],
       },
-    ],
+      {title: "Vocabulary",
+      url: "vocabulary"
+      }],
   },
 ]
 
@@ -68,9 +70,12 @@ export const menuItems_private = [
             title: "Statistic",
             url: "speaking_statistic"
           },
-        ],
+        ]
       },
-    ],
+    ,
+    {title: "Vocabulary",
+    url: "vocabulary"
+    }],
   },
   {
     title: "ChatGPT",

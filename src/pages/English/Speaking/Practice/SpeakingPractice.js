@@ -11,6 +11,7 @@ import {
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { ordinalToNumber } from "./ordinalToNumber"
 import { wordToNumber } from "./wordToNumber"
+import { useHotkeys } from 'react-hotkeys-hook';
 
 function SpeakingPractice() {
     const { para_id } = useParams();
@@ -28,7 +29,7 @@ function SpeakingPractice() {
     const [startTime, SetStarTime] = useState(0)
     const [duration, setDuration] = useState()
     const [currentId, setCurrentId] = useState(0)
-    const [dropboxTop, setDropboxTop] = useState(163)
+    const [dropboxTop, setDropboxTop] = useState(203)
     const [dropboxLeft, setDropboxLeft] = useState(0)
     const [showDropdown, setshowDropdown] = useState(false)
     const nextWord = useRef(null);
@@ -39,6 +40,8 @@ function SpeakingPractice() {
     const [skipWanring, setSkipWanring] = useState(false);
     const [startWordDuration, setWordDuration] = useState(performance.now());
     const [pronunciation, setPronunciation] = useState('');
+
+
 
 
     const reset = () => {
@@ -85,9 +88,9 @@ function SpeakingPractice() {
         }
     };
 
-    const mic_handle = (tem_state) => {
+    const mic_handle = () => {
         setFinish(false)
-        if (tem_state) {
+        if (state) {
             setState(false)
             SpeechRecognition.stopListening()
         } else {
@@ -101,6 +104,8 @@ function SpeakingPractice() {
             SpeechRecognition.startListening({ continuous: true })
         }
     };
+
+
     const [temForm, setTemForm] = useState(initialFormState);
     const [userOption, setUserOption] = useState(true);
 
@@ -130,11 +135,10 @@ function SpeakingPractice() {
         var raw_word = raw_word.replace(/:/g, '');
         var raw_word = raw_word.replace(",", '');
         var raw_word = raw_word.replace(".", '');
+        var raw_word = raw_word.replace(";", '');
 
         return raw_word
     }
-
-
 
     const handleUserOption = () => {
         setUserOption(!userOption)
@@ -226,6 +230,11 @@ function SpeakingPractice() {
             console.error('Error submitting form:', error);
         }
     }
+    // useEffect(() => {
+    //     const closeDropdown = () => setSelectedWord('');
+    //     document.addEventListener('click', closeDropdown);
+    //     return () => document.removeEventListener('click', closeDropdown);
+    // }, []);
 
     const handleSkip = () => {
 
@@ -294,9 +303,8 @@ function SpeakingPractice() {
         }
     };
 
-
     const STEPWISE = () => {
-        if (breaking_Words.length > 1 & transcript !== "") {
+        if (breaking_Words.length > 1 & transcript !== "" & state == true) {
             var last_word_speak = normalizeWord(word_processsing(transcript.split(' ').pop()))
             var checking_word = normalizeWord(word_processsing(breaking_Words[currentId]))
 
@@ -363,7 +371,7 @@ function SpeakingPractice() {
                 }
             } else {
                 setFailTime(failTime + 1)
-                if (failTime >= 2) {
+                if (failTime >= 1) {
                     fetchPronunciation(checking_word)
                     setshowDropdown(true)
                 }
@@ -376,28 +384,10 @@ function SpeakingPractice() {
         STEPWISE()
     }, [transcript, resetTranscript])
 
-    const handleKeyPress = (event) => {
-        let temState = state
 
-        if (event.key == "Enter") {
-            mic_handle(!state)
-        } else if (event.key == " ") {
-            handleSkip()
-        }
-    };
 
-    useEffect(() => {
-        // Adding the event listener when the component mounts
-        window.addEventListener('keydown', handleKeyPress);
 
-        // Cleanup function to remove the event listener when the component unmounts
-        return () => {
-            window.removeEventListener('keydown', handleKeyPress);
-        };
-    }, []);
-
-    useEffect(() => {
-
+    const updateDropboxPosition = () => {
         if (nextWord.current) {
             const { offsetTop, offsetLeft, offsetHeight } = nextWord.current
             setDropboxTop(offsetTop + offsetHeight + 3)
@@ -407,6 +397,10 @@ function SpeakingPractice() {
             setDropboxTop(+ offsetHeight + 3)
             setDropboxLeft(offsetLeft + offsetWidth - 100)
         }
+
+    }
+    useEffect(() => {
+        updateDropboxPosition()
     }, [currentId]);
     let displayStyle;
 
@@ -442,22 +436,39 @@ function SpeakingPractice() {
             return "#F4D03F"
         } else if (level >= 20 & level < 50) {
             return "#E67E22"
-        } else if (level  == 50) {
+        } else if (level == 50) {
             return "#8E44AD"
         } else {
             return "#E74C3C"
         }
     }
-    const speakText = (word) => {
-        if ('speechSynthesis' in window & state === false) {
-            const utterance = new SpeechSynthesisUtterance(word);
-            speechSynthesis.speak(utterance)
-            fetchPronunciation(word)
-        } else {
-            alert('Disable the microphone before clicking the words to hear their pronunciation audio!');
-        }
 
+    const textSpeech = (word) => {
+        return new Promise((resolve, reject) => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.onend = () => resolve(); // Resolve when speech ends
+                utterance.onerror = (e) => reject(e); // Reject on error
+                speechSynthesis.speak(utterance);
+                // fetchPronunciation(word); // Uncomment if this function is defined
+            } else {
+                reject('Speech synthesis not supported');
+            }
+        });
     };
+
+    const handleSpeechClick = async (word) => {
+        try {
+            SpeechRecognition.stopListening()
+            updateDropboxPosition()
+            await textSpeech(word);
+            SpeechRecognition.startListening({ continuous: true })
+        } catch (error) {
+            console.error("Error during speech synthesis:", error);
+            setState(true); // Consider setting state back to true even on error
+        }
+    };
+
 
     const fetchPronunciation = async (word) => {
         try {
@@ -471,6 +482,22 @@ function SpeakingPractice() {
             setPronunciation(word);
         }
     };
+
+
+    useHotkeys('space',
+        () => { handleSpeechClick(breaking_Words[currentId]) },
+    )
+    useHotkeys('enter',
+        () => {
+            mic_handle()
+        }
+    )
+    useHotkeys('ctrl',
+        () => { handleSkip() },
+    )
+    useHotkeys('r',
+        () => { reset() },
+    )
     return (
         <div className={'background-image-repeat'}>
             <div class="container pb-5">
@@ -616,32 +643,36 @@ function SpeakingPractice() {
                                                         {completedWords.map((word, index) => {
                                                             return (
                                                                 <span key={index}
-                                                                    style={{color: wordColor(word["level"])}}
+                                                                    style={{ color: wordColor(word["level"]) }}
                                                                     ref={(index === (completedWords.length - 1)) ? currWord : null}>
                                                                     {word["word"] + " "}
+
                                                                 </span>
                                                             )
                                                         })}
                                                         {uncompletedWords.map((word, index) => {
                                                             return (
-                                                                <span key={index} onClick={(e) => speakText(word)} class="text-light" ref={(index === 0) ? nextWord : null}>
+                                                                <span key={index} 
+                                                                // onClick={(e) => handleWordClick(word, e)} 
+                                                                class="text-light" ref={(index === 0) ? nextWord : null}>
                                                                     {word + " "}
                                                                     {(<div style={{
                                                                         "display": displayStyle,
                                                                         "position": "absolute",
                                                                         "top": dropboxTop,
-                                                                        "left": dropboxLeft,
+                                                                        "left": dropboxLeft - 130,
                                                                         "z-index": "1",
                                                                         "background-color": 'rgb(250, 250, 250, 0.9)',
                                                                         "height": "50px",
                                                                         "width": "500px",
                                                                         "border-radius": "25px"
                                                                     }} class="text-primary text-center" >
-                                                                        <p class="m-0 p-0"><b>{pronunciation}</b></p>
+                                                                        <p class="m-0 p-0"><b>Pronunciation: {pronunciation}</b></p>
                                                                         <p><b>{dropdownTranscript}</b></p>
 
                                                                     </div>
                                                                     )}
+
                                                                 </span>
                                                             )
                                                         })}
@@ -653,11 +684,11 @@ function SpeakingPractice() {
                                                     (<div style={{ height: "38px" }}></div>)}
                                                 <div class="d-flex justify-content-center">
                                                     {state ? (
-                                                        <button type="button" onClick={() => mic_handle(true)} class="btn btn-outline-danger mx-2" >
+                                                        <button type="button" onClick={() => mic_handle()} class="btn btn-outline-danger mx-2" >
                                                             <FontAwesomeIcon icon={faMicrophone} style={{ color: "#DC4C64", }} />
                                                         </button>
                                                     ) : (
-                                                        <button type="button" onClick={() => mic_handle(false)} class="btn btn-outline-success mx-2">
+                                                        <button type="button" onClick={() => mic_handle()} class="btn btn-outline-success mx-2">
                                                             <FontAwesomeIcon icon={faMicrophone} />
                                                         </button>
                                                     )}
