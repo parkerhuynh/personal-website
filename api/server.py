@@ -742,5 +742,21 @@ def skip_count_per_day_func(user_id, day, country, city):
     skip_count_per_day["date"] = pd.to_datetime(skip_count_per_day["date"]).dt.strftime('%Y-%m-%d')
     return skip_count_per_day.to_dict("records")
 
+@app.route('/add_voca', methods=['POST'])
+def add_voca():
+    data = request.json
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = """
+                INSERT INTO vocabularies (user_id, word, type, definition, status)
+                SELECT %s, %s, %s, %s, %s FROM DUAL
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM vocabularies 
+                    WHERE user_id = %s AND word = %s AND type = %s AND definition = %s
+                )
+                """
+        cursor.execute(query, (data['user_id'], data['word'], data['type'], data['definition'], 0, data['user_id'], data['word'], data['type'], data['definition']))
+        connection.commit()
+        return jsonify({"message": "Progress added successfully"}), 200
 if __name__ == "__main__":
     app.run(debug=True, port=8888)
