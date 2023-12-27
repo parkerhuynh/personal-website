@@ -5,14 +5,13 @@ import ReactLoading from 'react-loading';
 import axios from 'axios';
 import { SpeakingStatisticData } from './SpeakingStatisticData.js';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend } from 'recharts';
-
 const MICSIZE = 50
 const IMG_MIC_SIZE = MICSIZE * .8
 
 function SpeakingStatistic() {
   const { currentUser } = useAuth();
   const { userInfo, isLoading, diffWordDurMisspel, skipCountWords,
-    totalSpeakingPerDay, doneCounts, skipCountPerDay, DataAnalysis } = SpeakingStatisticData(currentUser);
+    totalSpeakingPerDay, doneCounts, skipCountPerDay, DataAnalysis, dailyAvergePerWord} = SpeakingStatisticData(currentUser);
 
   const [day, setDay] = useState(3)
   const [hardWord, setHardWord] = useState(10)
@@ -53,11 +52,9 @@ function SpeakingStatistic() {
   };
   const diffWordDurMisspelFilter = diffWordDurMisspel.slice(0, hardWord)
   const skipCountWordsFilter = skipCountWords.slice(0, skipWord)
-
-
   return (
     <div className={'background-image-repeat'}>
-      <div className="container">
+      <div className="container p-0">
         {/* --------------------------------------------------------------------------------------- */}
         {!currentUser ? (
           <div className="pt-5 text-center">
@@ -88,13 +85,13 @@ function SpeakingStatistic() {
                   </div>
                 </div>
                 {/* --------------------------Daily summary-------------------------- */}
-                <div class="row py-3">
+                <div class="row py-3 border-bottom border-warning pb-3 m-0">
                   <div class="col-1"> </div>
-                  <div class="col-10">
-                    <h5 class="text-center">Daily Word Count</h5>
+                  <div class="col-11">
+                    <h5 class="text-center">Daily Word Count and Success Rate</h5>
                     <ResponsiveContainer width="100%" height={500}>
                       <LineChart data={totalSpeakingPerDay} >
-                        {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                      <CartesianGrid strokeDasharray="5 20" stroke="#ccc" />
                         <XAxis dataKey="date" stroke="white"
                           height={90}
                           tick={{
@@ -102,7 +99,8 @@ function SpeakingStatistic() {
                             angle: -60, // Rotate labels to -45 degrees
                             textAnchor: 'end' // Align the end of the label with the tick
                           }}
-                          padding={{ left: 10, right: 10 }} />
+                          // padding={{ left: 10, right: 10 }} 
+                          />
                         <YAxis tick={{ fill: 'white' }} stroke="white" yAxisId="left" width={100}
                           label={{ value: 'Word Count', angle: -90, fill: 'white' }} />
                         <YAxis
@@ -125,17 +123,16 @@ function SpeakingStatistic() {
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                  <div class="col-1"> </div>
 
                 </div>
 
-
-                <div class="row py-3">
-                  <div class="col-6">
-                    <h5 class="text-center">Daily Completed Count</h5>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={doneCounts} >
-                        {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                <div class="row py-3 border-bottom border-warning pb-3 m-0">
+                  <div class="col-1"> </div>
+                  <div class="col-10 ">
+                    <h5 class="text-center">Daily Average Duration per Word</h5>
+                    <ResponsiveContainer width="100%" height={500}>
+                      <LineChart data={dailyAvergePerWord} >
+                      <CartesianGrid strokeDasharray="5 20" stroke="#ccc" />
                         <XAxis dataKey="date" stroke="white"
                           height={90}
                           tick={{
@@ -143,7 +140,32 @@ function SpeakingStatistic() {
                             angle: -60, // Rotate labels to -45 degrees
                             textAnchor: 'end' // Align the end of the label with the tick
                           }}
-                          padding={{ left: 10, right: 10 }} />
+                          // padding={{ left: 10, right: 10 }} 
+                          />
+                        <YAxis tick={{ fill: 'white' }} stroke="white" yAxisId="left" width={100}
+                          label={{ value: 'Average duration per word (second)', angle: -90, fill: 'white' }} />
+                        <Tooltip />
+                        <Line type="monotone" name="Average Duration" dataKey="duration" yAxisId="left" stroke="#1E8449" activeDot={{ r: 8 }} strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div class="col-1"> </div>
+                </div>
+
+
+                <div class="row m-0">
+                  <div class="col-6 border-bottom border-end border-warning py-5 ps-1 pe-3">
+                    <h5 class="text-center">Daily Completed Count</h5>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={doneCounts} >
+                      < CartesianGrid strokeDasharray="2 20" stroke="#ccc" />
+                        <XAxis dataKey="date" stroke="white"
+                          height={90}
+                          tick={{
+                            fill: 'white',
+                            angle: -60, // Rotate labels to -45 degrees
+                            textAnchor: 'end' // Align the end of the label with the tick
+                          }}/>
                         <YAxis tick={{ fill: 'white' }} stroke="white" yAxisId="left" width={100}
                           label={{ value: 'Completed Count', angle: -90, fill: 'white' }} />
                         <Tooltip />
@@ -151,11 +173,11 @@ function SpeakingStatistic() {
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                  <div class="col-6">
+                  <div class="col-6 border-bottom border-warning py-5 ps-1 pe-4">
                     <h5 class="text-center">Daily Skip Word Count</h5>
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={skipCountPerDay} >
-                        {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                      <CartesianGrid strokeDasharray="2 20" stroke="#ccc" />
                         <XAxis dataKey="date" stroke="white"
                           height={90}
                           tick={{
@@ -163,7 +185,7 @@ function SpeakingStatistic() {
                             angle: -60, // Rotate labels to -45 degrees
                             textAnchor: 'end' // Align the end of the label with the tick
                           }}
-                          padding={{ left: 10, right: 10 }} />
+/>
                         <YAxis tick={{ fill: 'white' }} stroke="white" yAxisId="left" width={100}
                           label={{ value: 'Skip Word Count', angle: -90, fill: 'white' }} />
                         <Tooltip />
@@ -175,10 +197,10 @@ function SpeakingStatistic() {
                 </div>
 
                 {/* --------------------------HARD WORDS-------------------------- */}
-                <div class="row py-3">
-                  <div class="col-6">
+                <div class="row  m-0">
+                  <div class="col-6 border-bottom border-end border-warning py-5 ps-1 pe-3">
                     <div class="d-flex justify-content-end">
-                      <div class="col-3 p-2">
+                      <div class="col-3">
                         <select value={hardWord} style={{ backgroundColor: "transparent" }} onChange={handleSelectHardWordChange} class="form-select form-select-sm text-light" aria-label=".form-select-sm example">
                           <option class="text-dark" value="10"> 10 words </option>
                           <option class="text-dark" value="20"> 20 words </option>
@@ -202,9 +224,9 @@ function SpeakingStatistic() {
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  <div class="col-6">
+                  <div class="col-6 border-bottom border-warning py-5 ps-1 pe-4">
                   <div class="d-flex justify-content-end">
-                      <div class="col-3 p-2">
+                      <div class="col-3">
                         <select value={skipWord} style={{ backgroundColor: "transparent" }} onChange={handleSelectSkipWordChange} class="form-select form-select-sm text-light" aria-label=".form-select-sm example">
                           <option class="text-dark" value="10"> 10 words </option>
                           <option class="text-dark" value="20"> 20 words </option>
@@ -232,6 +254,7 @@ function SpeakingStatistic() {
                     </ResponsiveContainer>
                   </div>
                 </div>
+                <div class="p-5"> </div>
               </div>
             )}
           </div>
