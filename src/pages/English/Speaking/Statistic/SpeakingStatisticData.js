@@ -20,6 +20,7 @@ export const SpeakingStatisticData = (currentUser) => {
     const [totalSpeakingPerDay, setTotalSpeakingPerDay] = useState([])
     const [doneCounts, setDoneCounts] = useState([])
     const [skipCountPerDay, setSkipCountPerDay] = useState([])
+    const [dailyAvergePerWord, setDailyAvergePerWord] = useState([])
 
     useEffect(() => {
         fetchUserData();
@@ -41,6 +42,9 @@ export const SpeakingStatisticData = (currentUser) => {
 
         const skipCountPerDayData = await axios.get(`/skip_count_per_day_func/${userId}/${day}/${timezone}`);
         setSkipCountPerDay(skipCountPerDayData.data);
+        
+        const dailyAvergePerWordData = await axios.get(`/daily_averge_per_word/${userId}/${day}/${timezone}`);
+        setDailyAvergePerWord(dailyAvergePerWordData.data);
     }
 
     const fetchUserData = async () => {
@@ -60,5 +64,5 @@ export const SpeakingStatisticData = (currentUser) => {
     };
     return { userInfo, isLoading, 
         diffWordDurMisspel, skipCountWords, totalSpeakingPerDay,
-        doneCounts, skipCountPerDay, DataAnalysis};
+        doneCounts, skipCountPerDay, DataAnalysis, dailyAvergePerWord};
 };
