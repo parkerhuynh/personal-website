@@ -26,10 +26,9 @@ function SpeakingPractice() {
     };
     const [state, setState] = useState(false)
     const [finish, setFinish] = useState(false)
+    const [timeElapsed, setTimeElapsed] = useState(0)
+    const [startTime, setStartTime] = useState(0)
 
-    const [timer, setTimer] = useState(null);
-
-    const [intervalId, setIntervalId] = useState(null);
     const [currentId, setCurrentId] = useState(0)
     const [dropboxTop, setDropboxTop] = useState(203)
     const [dropboxLeft, setDropboxLeft] = useState(0)
@@ -50,6 +49,7 @@ function SpeakingPractice() {
     const containerRef = useRef(null);
     const [show, setShow] = useState(false);
 
+
     const {
         transcript,
         interimTranscript,
@@ -59,6 +59,7 @@ function SpeakingPractice() {
 
     // Edit PARAGRAPH
     const saveEdit = async () => {
+        setStartTime(performance.now())
         try {
             setIsEditing(false);
             var jsonbody = {
@@ -84,25 +85,6 @@ function SpeakingPractice() {
         }
     };
 
-    function handleStartPause () {
-        setState(!state);
-        
-        
-        if (finish) {
-            setTimer(0)
-            setFinish(false)
-        }
-
-        if (state) {
-            SpeechRecognition.stopListening()
-        } else {
-            if (transcript == "") {
-                setSkipcount(0)
-            }
-            SpeechRecognition.startListening({ continuous: true })
-        }
-    };
-
     const [temForm, setTemForm] = useState(initialFormState);
     const [userOption, setUserOption] = useState(true);
 
@@ -112,9 +94,16 @@ function SpeakingPractice() {
     const handleEdit = () => {
         setIsEditing(true);
         setTemForm(para)
+
+        if (state) {
+            let temp_duration = performance.now() - startTime
+            let duration = timeElapsed + temp_duration
+            setTimeElapsed(duration)
+        }
     };
 
     const cancel = async () => {
+        setStartTime(performance.now())
         setIsEditing(false);
     };
     const para_processing = (text) => {
@@ -181,6 +170,25 @@ function SpeakingPractice() {
     const handleProfile = async () => {
         window.location.href = `/speaking_statistic`
     };
+    function handleStartPause () {
+        setState(!state);
+        if (finish) {
+            setTimeElapsed(0)
+            setFinish(false)
+        }
+
+        if (state) {
+            SpeechRecognition.stopListening()
+            let temp_duration = performance.now() - startTime
+            setTimeElapsed(prevValue => prevValue + temp_duration)
+        } else {
+            setStartTime(performance.now())
+            if (transcript == "") {
+                setSkipcount(0)
+            }
+            SpeechRecognition.startListening({ continuous: true })
+        }
+    };
 
     const saveSpeakingEvent = async (completed_word, word_level, word_duration, currentId) => {
         const formData = {
@@ -229,8 +237,7 @@ function SpeakingPractice() {
     }
 
     const reset = () => {
-        setTimer(0);
-        clearInterval(intervalId);
+        setTimeElapsed(0)
         setFinish(false)
         resetTranscript()
         setCurrentId(0)
@@ -262,7 +269,7 @@ function SpeakingPractice() {
         }
     }
     const handleFinish = (duration, warningSkip) => {
-        console.log(duration, warningSkip)
+        setTimeElapsed(duration)
         setFinish(true)
         resetTranscript()
         setCurrentId(0)
@@ -288,7 +295,8 @@ function SpeakingPractice() {
             handleCurrentword(checking_word, durationWord, completedpart, 100)
 
             if (completedpart.length === breaking_Words.length) {
-                let duration = timer
+                let temp_duration = performance.now() - startTime
+                let duration = timeElapsed + temp_duration
                 let warningSkip = newSkipCount > (breaking_Words.length / 2) || newSkipCount > 20
 
                 handleFinish(duration, warningSkip)
@@ -310,7 +318,8 @@ function SpeakingPractice() {
                         setCurrentId(k + 1)
 
                         if (completedpart.length === breaking_Words.length) {
-                            let duration = timer
+                            let temp_duration = performance.now() - startTime
+                            let duration = timeElapsed + temp_duration
                             let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 20
                             handleFinish(duration, warningSkip)
                         }
@@ -336,7 +345,8 @@ function SpeakingPractice() {
                 handleCurrentword(checking_word, durationWord, completedpart, failTime)
 
                 if (completedpart.length === breaking_Words.length) {
-                    let duration = timer
+                    let temp_duration = performance.now() - startTime
+                    let duration = timeElapsed + temp_duration
                     let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 10
                     handleFinish(duration, warningSkip)
 
@@ -357,7 +367,8 @@ function SpeakingPractice() {
                             setCurrentId(k + 1)
                             
                             if (completedpart.length === breaking_Words.length) {
-                                let duration = timer
+                                let temp_duration = performance.now() - startTime
+                                let duration = timeElapsed + temp_duration
                                 let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 20
                                 handleFinish(duration, warningSkip)
                             }
@@ -371,8 +382,6 @@ function SpeakingPractice() {
             }
         }
     };
-
-    
 
     useEffect(() => {
         STEPWISE()
@@ -556,28 +565,6 @@ function SpeakingPractice() {
         textAlign: 'left'
     };
 
-    useEffect(() => {
-        if (state) {
-            const id = setInterval(() => {
-                setTimer(prevTime => prevTime + 10);
-            }, 10);
-
-            setIntervalId(id);
-        } else if (!state && intervalId) {
-            clearInterval(intervalId);
-        }
-
-        return () => clearInterval(intervalId);
-    }, [state]);
-
-    const formatTime = (ms) => {
-        let minutes = Math.floor(ms / 60000);
-        let seconds = Math.floor((ms % 60000) / 1000);
-        let milliseconds = parseInt((ms % 1000) / 10, 10);
-
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(2, '0')}`;
-    }
-
     return (
         <div className={'background-image-repeat'}>
             <div class="container pb-5">
@@ -709,7 +696,6 @@ function SpeakingPractice() {
                                                     </ul>
                                                 </div>
                                             </button>
-                                            <h1 class="text-light">{formatTime(timer)}</h1>
                                         </div>
                                         <div class="col-8 p-3">
                                             {isEditing ? (
@@ -927,7 +913,7 @@ function SpeakingPractice() {
                                     </div>
                                     <div class="row">
                                         {finish ? (<div> {skipWanring ? (<pre class="text-light text-center">You skipped too much</pre>) : (
-                                            <pre class="text-light text-center">You have completed with {formatDuration(timer)} with {skipcount} skip words</pre>
+                                            <pre class="text-light text-center">You have completed with {formatDuration(timeElapsed)} with {skipcount} skip words</pre>
                                         )}</div>) :
                                             (<div style={{ height: "38px" }}></div>)}
                                     </div>
