@@ -67,7 +67,6 @@ function SpeakingStatistic() {
             <h3 class="text-center py-5">Speaking Statistic</h3>
             {isLoading ? (null) : (
               <div style={{ backgroundColor: 'rgb(0, 1, 2, 0.5)' }}>
-
                 <div class="row d-flex justify-content-end p-2">
                   <div class="col-2">
                     <select value={day} style={{ backgroundColor: "transparent" }} onChange={handleSelectDayChange} class="form-select form-select-sm text-light" aria-label=".form-select-sm example">

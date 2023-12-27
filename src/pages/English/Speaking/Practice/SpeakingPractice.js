@@ -26,8 +26,10 @@ function SpeakingPractice() {
     };
     const [state, setState] = useState(false)
     const [finish, setFinish] = useState(false)
-    const [startTime, SetStarTime] = useState(0)
-    const [duration, setDuration] = useState()
+
+    const [timer, setTimer] = useState(null);
+
+    const [intervalId, setIntervalId] = useState(null);
     const [currentId, setCurrentId] = useState(0)
     const [dropboxTop, setDropboxTop] = useState(203)
     const [dropboxLeft, setDropboxLeft] = useState(0)
@@ -47,20 +49,6 @@ function SpeakingPractice() {
     const [definitionWord, setdefinitionWord] = useState([])
     const containerRef = useRef(null);
     const [show, setShow] = useState(false);
-
-
-
-    const reset = () => {
-        setFinish(false)
-        resetTranscript()
-        setCurrentId(0)
-        setCompletedWords([])
-        setSkipcount(0)
-        setState(false)
-        setFailTime(0)
-        setshowDropdown(false)
-        setShowDefinitionDropdown(false)
-    }
 
     const {
         transcript,
@@ -96,23 +84,24 @@ function SpeakingPractice() {
         }
     };
 
-    const mic_handle = () => {
-        setFinish(false)
+    function handleStartPause () {
+        setState(!state);
+        
+        
+        if (finish) {
+            setTimer(0)
+            setFinish(false)
+        }
+
         if (state) {
-            setState(false)
             SpeechRecognition.stopListening()
         } else {
-            setWordDuration(performance.now())
-            setState(true)
             if (transcript == "") {
-                SetStarTime(performance.now())
-                setDuration(0)
                 setSkipcount(0)
             }
             SpeechRecognition.startListening({ continuous: true })
         }
     };
-
 
     const [temForm, setTemForm] = useState(initialFormState);
     const [userOption, setUserOption] = useState(true);
@@ -239,7 +228,53 @@ function SpeakingPractice() {
         }
     }
 
+    const reset = () => {
+        setTimer(0);
+        clearInterval(intervalId);
+        setFinish(false)
+        resetTranscript()
+        setCurrentId(0)
+        setCompletedWords([])
+        setSkipcount(0)
+        setState(false)
+        setFailTime(0)
+        setshowDropdown(false)
+        setShowDefinitionDropdown(false)
+    }
 
+    const handleCurrentword = (checkingWord, durationWord, completedpart, fail_time) => {
+        setCompletedWords(completedpart);
+        saveSpeakingEvent(checkingWord, fail_time, durationWord, currentId)
+        setWordDuration(performance.now())
+        setFailTime(0)
+        setshowDropdown(false)
+        setShowDefinitionDropdown(false)
+    }
+
+    const handleFaildTime = (checking_word) => {
+        setFailTime(failTime + 1)
+        if (failTime >= 1) {
+            if (!showDropdown) {
+                fetchPronunciation(checking_word)
+                setshowDropdown(true)
+            }
+            setShowDefinitionDropdown(false)
+        }
+    }
+    const handleFinish = (duration, warningSkip) => {
+        console.log(duration, warningSkip)
+        setFinish(true)
+        resetTranscript()
+        setCurrentId(0)
+        setCompletedWords([])
+        setState(false)
+        setshowDropdown(false)
+        setShowDefinitionDropdown(false)
+        if (warningSkip == false) {
+            saveCompletedSpeaking(duration)
+        }
+        setSkipWanring(warningSkip)
+    }
     const handleSkip = () => {
 
         if (state) {
@@ -249,35 +284,24 @@ function SpeakingPractice() {
             let newcompletedWord = { word: breaking_Words[currentId], id: currentId, level: 100 };
             let durationWord = (performance.now() - startWordDuration)
             let completedpart = [...completedWords, newcompletedWord]
-            setCompletedWords(completedpart);
-            saveSpeakingEvent(checking_word, 100, durationWord, currentId)
-            setWordDuration(performance.now())
-            setFailTime(0)
-            setshowDropdown(false)
-            setShowDefinitionDropdown(false)
+
+            handleCurrentword(checking_word, durationWord, completedpart, 100)
 
             if (completedpart.length === breaking_Words.length) {
-                let duration = (performance.now() - startTime) / 1000;
-                setFinish(true)
-                resetTranscript()
-                setCurrentId(0)
-                setCompletedWords([])
-                setDuration(duration)
-                setState(false)
+                let duration = timer
                 let warningSkip = newSkipCount > (breaking_Words.length / 2) || newSkipCount > 20
-                if (warningSkip == false) {
-                    saveCompletedSpeaking(duration)
-                }
-                setSkipWanring(warningSkip)
+
+                handleFinish(duration, warningSkip)
+
             } else {
                 var next_id = currentId + 1
                 setCurrentId(next_id)
 
                 for (let k = next_id; k <= (breaking_Words.length - 1); k++) {
                     var checking_next_word = normalizeWord(word_processsing(breaking_Words[k]))
+
                     if (skipwords.includes(checking_next_word)) {
                         let newcompletednewWord = { word: checking_next_word, id: k, level: 50 };
-
                         completedpart = [...completedpart, newcompletednewWord];
                         setCompletedWords(completedpart);
                         setFailTime(0)
@@ -286,20 +310,9 @@ function SpeakingPractice() {
                         setCurrentId(k + 1)
 
                         if (completedpart.length === breaking_Words.length) {
-                            let duration = (performance.now() - startTime) / 1000;
-                            setFinish(true)
-                            resetTranscript()
-                            setCurrentId(0)
-                            setCompletedWords([])
-                            setDuration(duration)
-
-                            setState(false)
-
+                            let duration = timer
                             let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 20
-                            if (warningSkip == false) {
-                                saveCompletedSpeaking(duration)
-                            }
-                            setSkipWanring(warningSkip)
+                            handleFinish(duration, warningSkip)
                         }
                     } else {
                         break
@@ -314,33 +327,18 @@ function SpeakingPractice() {
         if (breaking_Words.length > 1 & transcript !== "" & state == true) {
             var last_word_speak = normalizeWord(word_processsing(transcript.split(' ').pop()))
             var checking_word = normalizeWord(word_processsing(breaking_Words[currentId]))
-
             saveSpeakingWord(last_word_speak, checking_word, currentId)
+
             if ((last_word_speak == checking_word) & (last_word_speak !== "")) {
                 let newcompletedWord = { word: breaking_Words[currentId], id: currentId, level: failTime };
                 let durationWord = (performance.now() - startWordDuration);
                 let completedpart = [...completedWords, newcompletedWord];
-                setCompletedWords(completedpart);
-                saveSpeakingEvent(checking_word, failTime, durationWord, currentId)
-                setWordDuration(performance.now())
-                setFailTime(0)
-                setshowDropdown(false)
-                setShowDefinitionDropdown(false)
+                handleCurrentword(checking_word, durationWord, completedpart, failTime)
 
                 if (completedpart.length === breaking_Words.length) {
-                    let duration = (performance.now() - startTime) / 1000;
-                    setFinish(true)
-                    resetTranscript()
-                    setCurrentId(0)
-                    setCompletedWords([])
-                    setDuration(duration)
-                    saveCompletedSpeaking(duration)
-                    setState(false)
-                    setshowDropdown(false)
-                    setShowDefinitionDropdown(false)
-
+                    let duration = timer
                     let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 10
-                    setSkipWanring(warningSkip)
+                    handleFinish(duration, warningSkip)
 
                 } else {
                     var next_id = currentId + 1
@@ -351,27 +349,17 @@ function SpeakingPractice() {
 
                         if (skipwords.includes(checking_next_word)) {
                             let newcompletednewWord = { word: checking_next_word, id: k, level: 50 };
-
                             completedpart = [...completedpart, newcompletednewWord];
                             setCompletedWords(completedpart);
                             setFailTime(0)
-
+                            setshowDropdown(false)
+                            setShowDefinitionDropdown(false)
                             setCurrentId(k + 1)
-
+                            
                             if (completedpart.length === breaking_Words.length) {
-                                let duration = (performance.now() - startTime) / 1000;
-                                setFinish(true)
-                                resetTranscript()
-                                setCurrentId(0)
-                                setCompletedWords([])
-                                setDuration(duration)
-                                saveCompletedSpeaking(duration)
-                                setState(false)
+                                let duration = timer
                                 let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 20
-                                if (warningSkip == false) {
-                                    saveCompletedSpeaking(duration)
-                                }
-                                setSkipWanring(warningSkip)
+                                handleFinish(duration, warningSkip)
                             }
                         } else {
                             break
@@ -379,17 +367,12 @@ function SpeakingPractice() {
                     }
                 }
             } else {
-                setFailTime(failTime + 1)
-                if (failTime >= 1) {
-                    if (!showDropdown) {
-                        fetchPronunciation(checking_word)
-                        setshowDropdown(true)
-                    }
-                    setShowDefinitionDropdown(false)
-                }
+                handleFaildTime(checking_word)
             }
         }
     };
+
+    
 
     useEffect(() => {
         STEPWISE()
@@ -417,7 +400,7 @@ function SpeakingPractice() {
     } else {
         displayStyle = "none";
     }
-    function separateString(str) {
+    function separateString (str)  {
         // Regular expression with capturing groups for \n\n, \n, and -
         const regex = /(\n\n|\n)/;
         return str.split(regex).filter(s => s); // filter out empty strings
@@ -425,13 +408,17 @@ function SpeakingPractice() {
     const uncompletedWords = breaking_Words.slice(currentId)
     const dropdownTranscript = transcript.split(' ').slice(Math.max(transcript.split(' ').length - 3, 0)).join(" ")
 
-    let formattedTime;
-    if (duration < 60) {
-        formattedTime = duration.toFixed(2) + " seconds";
-    } else {
-        let minutes = Math.floor(duration / 60);
-        let seconds = (duration % 60).toFixed(2);
-        formattedTime = minutes + " minutes and " + seconds + " seconds";
+    const formatDuration = (duration) => {
+        let formattedTime;
+        duration = duration / 1000
+        if (duration < 60) {
+            formattedTime = duration.toFixed(2) + " seconds";
+        } else {
+            let minutes = Math.floor(duration / 60);
+            let seconds = (duration % 60).toFixed(2);
+            formattedTime = minutes + " minutes and " + seconds + " seconds";
+        }
+        return formattedTime;
     }
 
     const wordColor = (level) => {
@@ -501,7 +488,7 @@ function SpeakingPractice() {
     )
     useHotkeys('enter',
         () => {
-            mic_handle()
+            handleStartPause()
         }
     )
     useHotkeys('ctrl',
@@ -568,6 +555,29 @@ function SpeakingPractice() {
         "border-radius": "10px",
         textAlign: 'left'
     };
+
+    useEffect(() => {
+        if (state) {
+            const id = setInterval(() => {
+                setTimer(prevTime => prevTime + 10);
+            }, 10);
+
+            setIntervalId(id);
+        } else if (!state && intervalId) {
+            clearInterval(intervalId);
+        }
+
+        return () => clearInterval(intervalId);
+    }, [state]);
+
+    const formatTime = (ms) => {
+        let minutes = Math.floor(ms / 60000);
+        let seconds = Math.floor((ms % 60000) / 1000);
+        let milliseconds = parseInt((ms % 1000) / 10, 10);
+
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(2, '0')}`;
+    }
+
     return (
         <div className={'background-image-repeat'}>
             <div class="container pb-5">
@@ -581,13 +591,14 @@ function SpeakingPractice() {
                     </div>
                 ) : (
                     <div>
-                        <h1 class="text-center py-5 text-light "> Speaking Practice</h1>
+                        <h1 class="text-center py-5 text-light"> Speaking Practice</h1>
                         {isLoading ? (null) : (
                             <div>
                                 <div ref={containerRef} class="card" style={{ backgroundColor: 'rgb(0, 1, 2, 0.5)' }}>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-1"> <button style={dropdownStyle} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} className="mx-3 btn btn-sm btn-light text-center">
+                                    <div class="row m-0">
+                                        <div class="col-2 p-3">
+                                            {/* -----------------------------Help button-------------------- */}
+                                            <button style={dropdownStyle} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} className="btn btn-sm btn-light text-center">
                                                 <FontAwesomeIcon icon={faInfo} />
                                                 <div class="text-left" style={dropdownContentStyle}>
                                                     <ul>
@@ -695,12 +706,14 @@ function SpeakingPractice() {
                                                             Words that are <span class="text-danger"><b>not spoken and skipped </b> </span>  are marked in <span class="text-danger"><b>red </b> </span>.
                                                         </li>
 
-
                                                     </ul>
                                                 </div>
-                                            </button></div>
-                                            <div class="col-10">
-                                                {isEditing ? (
+                                            </button>
+                                            <h1 class="text-light">{formatTime(timer)}</h1>
+                                        </div>
+                                        <div class="col-8 p-3">
+                                            {isEditing ? (
+                                                <>
                                                     <div class="d-flex justify-content-center">
                                                         <label htmlFor="title" className="text-light me-2">Title:</label>
                                                         <input
@@ -711,117 +724,112 @@ function SpeakingPractice() {
                                                             onChange={(e) => setTemForm({ ...temForm, title: e.target.value })}
                                                         />
                                                     </div>
-                                                ) : (
+                                                    <div class="d-flex justify-content-center align-items-center m-2">
+                                                        <label htmlFor="topic" className="text-light me-2">Topic:</label>
+                                                        <input
+                                                            style={{ width: "700px" }}
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={temForm.topic}
+                                                            onChange={(e) => setTemForm({ ...temForm, topic: e.target.value })} />
+                                                    </div>
+                                                    <div class="m-2 d-flex justify-content-center align-items-center m-2">
+                                                        <label htmlFor="level" name="level" className="text-light">Level:</label>
+                                                        <select value={temForm.level} style={{ width: "700px" }} name="level" class="form-select"
+                                                            onChange={(e) => setTemForm({ ...temForm, level: e.target.value })}
+                                                            aria-label="Default select example">
+                                                            <option value="very easy">Very Easy</option>
+                                                            <option value="easy">Easy</option>
+                                                            <option value="medium">Medium</option>
+                                                            <option value="hard">Hard</option>
+                                                            <option value="very hard">Very Hard</option>
+                                                        </select>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
                                                     <h4 class="card-title text-light text-center">{para.title}</h4>
-                                                )}
-                                            </div>
-                                            <div class="col-1 d-flex justify-content-end">
+                                                    <h5 class="card-title text-light text-center">{para.topic}</h5>
+                                                    <h6 class="card-title text-light text-center">{para.level}</h6>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div class="col-2 p-3">
+                                            <div class="d-flex justify-content-end">
+                                                <button onClick={handleParaTableClick} className="btn btn-sm btn-light text-center m-1">
+                                                    <FontAwesomeIcon icon={faTable} />
+                                                </button>
                                                 {(para.user_id !== userInfo.id) ? (
-                                                    <div class="d-flex justify-content-around  m-0 p-0">
-                                                        <button onClick={handleParaTableClick} className="btn btn-sm btn-light text-center me-3">
-                                                            <FontAwesomeIcon icon={faTable} style={{ color: "#000000", }} />
-                                                        </button>
-                                                        <button className="btn btn-sm btn-danger text-center me-3" disabled>
+                                                    <>
+                                                        <button className="btn btn-sm btn-danger text-center m-1" disabled>
                                                             <FontAwesomeIcon icon={faPenToSquare} />
                                                         </button>
-                                                        <button className="btn btn-sm btn-danger text-center" disabled>
+                                                        <button className="btn btn-sm btn-danger text-center m-1" disabled>
                                                             <FontAwesomeIcon icon={faTrashAlt} />
                                                         </button>
-                                                    </div>
+                                                    </>
                                                 ) : (
-                                                    <div class="d-flex justify-content-around  m-0 p-0">
-                                                        <button onClick={handleParaTableClick} className="btn btn-sm btn-light text-center me-3">
-                                                            <FontAwesomeIcon icon={faTable} style={{ color: "#000000", }} />
-                                                        </button>
+                                                    <>
                                                         {isEditing ? (
-                                                            <div class="d-flex justify-content-around  m-0 p-0">
-                                                                <button onClick={saveEdit} className="btn btn-sm btn-light text-center me-3">
+                                                            <>
+                                                                <button onClick={saveEdit} className="btn btn-sm btn-light text-center m-1">
                                                                     <FontAwesomeIcon icon={faFloppyDisk} />
                                                                 </button>
-                                                                <button onClick={cancel} className="btn btn-sm btn-light text-center">
+                                                                <button onClick={cancel} className="btn btn-sm btn-light text-center m-1">
                                                                     <FontAwesomeIcon icon={faBan} />
                                                                 </button>
-                                                            </div>
+
+                                                            </>
                                                         ) : (
-                                                            <div class="d-flex justify-content-around  m-0 p-0">
-                                                                <button onClick={handleEdit} className="btn btn-sm btn-light text-center me-3">
+                                                            <>
+                                                                <button onClick={handleEdit} className="btn btn-sm btn-light text-center m-1">
                                                                     <FontAwesomeIcon icon={faPenToSquare} />
                                                                 </button>
-                                                                <button onClick={onDelete} className="btn btn-sm btn-light text-center">
+                                                                <button onClick={onDelete} className="btn btn-sm btn-light text-center m-1">
                                                                     <FontAwesomeIcon icon={faTrashAlt} />
                                                                 </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                            </>
+                                                        )
+                                                        }
+                                                    </>
                                                 )}
                                             </div>
+                                            <div class="d-flex justify-content-end">
+                                                <button onClick={handleProfile} className="btn btn-sm btn-light text-center m-1">
+                                                    <FontAwesomeIcon icon={faChartSimple} />
+                                                </button>
+                                                {userOption ? (
+                                                    <button onClick={handleUserOption} className="btn btn-sm btn-light text-center m-1">
+                                                        <FontAwesomeIcon icon={faUser} />
+                                                    </button>
+                                                ) : (
+                                                    <button onClick={handleUserOption} className="btn btn-sm btn-light text-center m-1">
+                                                        <FontAwesomeIcon icon={faGlobe} />
+                                                    </button>
+                                                )}
+                                                <button onClick={handleRandom} className="btn btn-sm btn-light text-center m-1">
+                                                    <FontAwesomeIcon icon={faShuffle} />
+                                                </button>
+                                            </div>
                                         </div>
+                                    </div>
+                                    <div class="row">
                                         {isEditing ? (
-                                            <div >
-                                                <div class="d-flex justify-content-center align-items-center m-2">
-                                                    <label htmlFor="topic" className="text-light me-2">Topic:</label>
-                                                    <input
-                                                        style={{ width: "700px" }}
-                                                        type="text"
-                                                        className="form-control"
-                                                        value={temForm.topic}
-                                                        onChange={(e) => setTemForm({ ...temForm, topic: e.target.value })} />
-                                                </div>
-                                                <div class="m-2 d-flex justify-content-center align-items-center m-2">
-                                                    <label htmlFor="level" name="level" className="text-light">Level:</label>
-                                                    <select value={temForm.level} style={{ width: "700px" }} name="level" class="form-select"
-                                                        onChange={(e) => setTemForm({ ...temForm, level: e.target.value })}
-                                                        aria-label="Default select example">
-                                                        <option value="very easy">Very Easy</option>
-                                                        <option value="easy">Easy</option>
-                                                        <option value="medium">Medium</option>
-                                                        <option value="hard">Hard</option>
-                                                        <option value="very hard">Very Hard</option>
-                                                    </select>
-                                                </div>
-                                                <div class="m-5">
-                                                    <label htmlFor="content" className="text-light my-2">Content:</label>
-                                                    <textarea
-                                                        id="content"
-                                                        name="content"
-                                                        className="form-control"
-                                                        value={temForm.content}
-                                                        onChange={(e) => setTemForm({ ...temForm, content: e.target.value })}
-                                                        rows={20}
-                                                        placeholder="Enter Content"
-                                                        required
-                                                    />
-                                                </div>
+                                            <div class="p-5">
+                                                <label htmlFor="content" className="text-light"><p class="text-center"> Content:</p></label>
+                                                <textarea
+                                                    id="content"
+                                                    name="content"
+                                                    className="form-control p"
+                                                    value={temForm.content}
+                                                    onChange={(e) => setTemForm({ ...temForm, content: e.target.value })}
+                                                    rows={20}
+                                                    placeholder="Enter Content"
+                                                    required
+                                                />
                                             </div>
                                         ) : (
-                                            <div>
-                                                <div class="row my-2">
-                                                    <div class="col-1"> </div>
-                                                    <div class="col-10">
-                                                        <h5 class="card-title text-light text-center">{para.topic}</h5>
-                                                    </div>
-                                                    <div class="col-1 d-flex justify-content-end">
-                                                        <button onClick={handleProfile} className="btn btn-sm btn-light text-center me-3">
-                                                            <FontAwesomeIcon icon={faChartSimple} />
-                                                        </button>
-                                                        {userOption ? (
-                                                            <button onClick={handleUserOption} className="btn btn-sm btn-light text-center me-3">
-                                                                <FontAwesomeIcon icon={faUser} />
-                                                            </button>
-                                                        ) : (
-                                                            <button onClick={handleUserOption} className="btn btn-sm btn-light text-center me-3">
-                                                                <FontAwesomeIcon icon={faGlobe} />
-                                                            </button>
-                                                        )}
-                                                        <button onClick={handleRandom} className="btn btn-sm btn-light text-center">
-                                                            <FontAwesomeIcon icon={faShuffle} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="row my-2 text-center">
-                                                    <h5 class="card-title text-light text-center">{para.level}</h5>
-                                                </div>
-
+                                            <div class="px-5 py-2">
                                                 <div>
                                                     <pre onClick={handleClick} style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
                                                         {completedWords.map((word, index) => {
@@ -912,29 +920,35 @@ function SpeakingPractice() {
                                                         })}
                                                     </pre>
                                                 </div>
-                                                {finish ? (<div> {skipWanring ? (<pre class="text-light text-center">You skipped too much</pre>) : (
-                                                    <pre class="text-light text-center">You have completed with {formattedTime} with {skipcount} skip words</pre>
-                                                )}</div>) :
-                                                    (<div style={{ height: "38px" }}></div>)}
-                                                <div class="d-flex justify-content-center">
-                                                    {state ? (
-                                                        <button type="button" onClick={() => mic_handle()} class="btn btn-outline-danger mx-2" >
-                                                            <FontAwesomeIcon icon={faMicrophone} style={{ color: "#DC4C64", }} />
-                                                        </button>
-                                                    ) : (
-                                                        <button type="button" onClick={() => mic_handle()} class="btn btn-outline-success mx-2">
-                                                            <FontAwesomeIcon icon={faMicrophone} />
-                                                        </button>
-                                                    )}
-                                                    <button type="button" onClick={() => reset()} class="btn btn-outline-warning mx-2">
-                                                        <FontAwesomeIcon icon={faRetweet} />
-                                                    </button>
-                                                    <button type="button" onClick={() => handleSkip()} class="btn btn-outline-info mx-2">
-                                                        <FontAwesomeIcon icon={faForward} />
-                                                    </button>
-                                                </div>
+
                                             </div>
                                         )}
+
+                                    </div>
+                                    <div class="row">
+                                        {finish ? (<div> {skipWanring ? (<pre class="text-light text-center">You skipped too much</pre>) : (
+                                            <pre class="text-light text-center">You have completed with {formatDuration(timer)} with {skipcount} skip words</pre>
+                                        )}</div>) :
+                                            (<div style={{ height: "38px" }}></div>)}
+                                    </div>
+                                    <div class="row p-5">
+                                        <div class="d-flex justify-content-center">
+                                            {state ? (
+                                                <button type="button" onClick={() => handleStartPause()} class="btn btn-outline-danger mx-2" >
+                                                    <FontAwesomeIcon icon={faMicrophone} style={{ color: "#DC4C64", }} />
+                                                </button>
+                                            ) : (
+                                                <button type="button" onClick={() => handleStartPause()} class="btn btn-outline-success mx-2">
+                                                    <FontAwesomeIcon icon={faMicrophone} />
+                                                </button>
+                                            )}
+                                            <button type="button" onClick={() => reset()} class="btn btn-outline-warning mx-2">
+                                                <FontAwesomeIcon icon={faRetweet} />
+                                            </button>
+                                            <button type="button" onClick={() => handleSkip()} class="btn btn-outline-info mx-2">
+                                                <FontAwesomeIcon icon={faForward} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
