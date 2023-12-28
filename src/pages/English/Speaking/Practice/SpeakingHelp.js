@@ -101,29 +101,25 @@ const SpeakingHelp = ({helpShow, setHelpShow}) => {
                         </li>
                         <li class="my-3">
                             Press
-                            <span class="text-info"> SPACE </span>
+                            <span class="text-info"> CTRL </span>
                             to hear the pronunciation of the next word.
                         </li>
                         <li class="my-3">
                             Press
                             <button type="button" class="btn btn-outline-info mx-2" >
                                 <FontAwesomeIcon icon={faForward} />
-                            </button> or <span class="text-info"> CTRL </span>
+                            </button> or <span class="text-info"> SHIFT </span>
                             to skip the next word.
                         </li>
-                        <li class="my-3">
+                        {/* <li class="my-3">
                             Click a word in the paragraph to show its pronunciation and its meanings. Click
                             <button type="button" style={{ "border-radius": "50%" }} class="m-1 btn btn-outline-dark btn-sm">
                                 <FontAwesomeIcon icon={faPlus} flip size="2xs" />
                             </button>
                             to save its meanings.
-                        </li>
+                        </li> */}
                         <li class="my-3">
-                            Click a word in the paragraph to show its pronunciation and its meanings. Click
-                            <button type="button" style={{ "border-radius": "50%" }} class="m-1 btn btn-outline-dark btn-sm">
-                                <FontAwesomeIcon icon={faPlus} flip size="2xs" />
-                            </button>
-                            to save its meanings.
+                            Click a word in the paragraph to show its pronunciation.
                         </li>
                         <li class="my-3">
                             Words spoken <span class="text-success"><b>up to 5 times  </b> </span>are highlighted in <span class="text-success"><b>green</b></span>,

@@ -379,7 +379,7 @@ function SpeakingPractice() {
     };
 
 
-    useHotkeys('space',
+    useHotkeys('ctrl',
         () => { handleSpeechClick(breakingWords[currentId]) },
     )
     useHotkeys('enter',
@@ -387,7 +387,7 @@ function SpeakingPractice() {
             handleStartPause()
         }
     )
-    useHotkeys('ctrl',
+    useHotkeys('shift',
         () => { handleSkip() },
     )
     useHotkeys('r',
@@ -549,10 +549,11 @@ function SpeakingPractice() {
                                         ) : (
                                             <div class="px-5 py-2">
                                                 <div>
-                                                    <pre style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
+                                                    <pre  style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
                                                         {completedWords.map((word, index) => {
                                                             return (
                                                                 <span key={index}
+                                                                onClick={(e) => {handleSpeechClick(word["word"])}}
                                                                     style={{ color: wordCompletedColor(word["level"]), "fontSize": "24px"}}
                                                                     ref={(index === (completedWords.length - 1)) ? currWord : null}>
                                                                         <b>{wordDisplay(word["word"])}</b>
@@ -565,6 +566,7 @@ function SpeakingPractice() {
                                                             return (
                                                                 <span key={index}
                                                                     style={{ color: word["color"], "fontSize": "24px"}}
+                                                                    onClick={(e) => {handleSpeechClick(word["word"])}}
                                                                     ref={(index === 0) ? nextWord : null}>
                                                                     {wordDisplay(word["word"])}
                                                                     {(<div style={{
