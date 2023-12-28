@@ -396,7 +396,7 @@ function SpeakingPractice() {
 
     var updateTopUsers = topUser.sort((a, b) => a.duration - b.duration);
     updateTopUsers.forEach((item, index) => {
-        item.ranking = index + 1; // Ranking starts at 1
+        item.ranking = index + 1;
     });
 
     function wordDisplay (word) {
@@ -553,9 +553,10 @@ function SpeakingPractice() {
                                                         {completedWords.map((word, index) => {
                                                             return (
                                                                 <span key={index}
-                                                                    style={{ color: wordCompletedColor(word["level"]) }}
+                                                                    style={{ color: wordCompletedColor(word["level"]), "fontSize": "24px"}}
                                                                     ref={(index === (completedWords.length - 1)) ? currWord : null}>
-                                                                    {wordDisplay(word["word"])}
+                                                                        <b>{wordDisplay(word["word"])}</b>
+                                                                    
 
                                                                 </span>
                                                             )
@@ -563,7 +564,7 @@ function SpeakingPractice() {
                                                         {processedUncompletedWords.map((word, index) => {
                                                             return (
                                                                 <span key={index}
-                                                                    style={{ color: word["color"] }}
+                                                                    style={{ color: word["color"], "fontSize": "24px"}}
                                                                     ref={(index === 0) ? nextWord : null}>
                                                                     {wordDisplay(word["word"])}
                                                                     {(<div style={{
@@ -573,7 +574,7 @@ function SpeakingPractice() {
                                                                         "left": dropboxLeft - 130,
                                                                         "z-index": "1",
                                                                         "background-color": 'rgb(250, 250, 250, 0.9)',
-                                                                        "height": "50px",
+                                                                        "height": "80px",
                                                                         "width": "500px",
                                                                         "border-radius": "25px"
                                                                     }} class="text-primary text-center" >
