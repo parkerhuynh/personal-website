@@ -21,6 +21,7 @@ export const SpeakingStatisticData = (currentUser) => {
     const [doneCounts, setDoneCounts] = useState([])
     const [skipCountPerDay, setSkipCountPerDay] = useState([])
     const [dailyAvergePerWord, setDailyAvergePerWord] = useState([])
+    
 
     useEffect(() => {
         fetchUserData();
@@ -45,6 +46,8 @@ export const SpeakingStatisticData = (currentUser) => {
         
         const dailyAvergePerWordData = await axios.get(`/daily_averge_per_word/${userId}/${day}/${timezone}`);
         setDailyAvergePerWord(dailyAvergePerWordData.data);
+
+        
     }
 
     const fetchUserData = async () => {

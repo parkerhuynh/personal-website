@@ -8,7 +8,7 @@ export const SpeakingPracticeData = (currentUser, para_id) => {
     const [userInfo, setUserInfo] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [allParaId, setAllParaId] = useState([]);
-
+    const [topUser, setTopUser] = useState([])
     const initialFormState = {
         user_id: userInfo.id,
         topic: '',
@@ -41,6 +41,9 @@ export const SpeakingPracticeData = (currentUser, para_id) => {
             const paraIdsResponse = await axios.get(`/get_all_para_id`);
             setAllParaId(paraIdsResponse.data)
 
+            const topUserData = await axios.get(`/get_static_one_paragraph/${userInfoResponse.id}/${para_id}`);
+            setTopUser(topUserData.data);
+
             
 
         } catch (error) {
@@ -49,5 +52,5 @@ export const SpeakingPracticeData = (currentUser, para_id) => {
             setIsLoading(false);
         }
     };
-    return { userInfo, isLoading, setIsLoading, para, setPara, allParaId};
+    return { userInfo, isLoading, setIsLoading, para, setPara, allParaId, topUser, setTopUser};
 };

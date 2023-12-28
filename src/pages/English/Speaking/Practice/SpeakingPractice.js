@@ -4,6 +4,7 @@ import { useAuth } from '../../../../components/AuthContext.js';
 import axios from 'axios';
 import { SpeakingPracticeData } from './SpeakingPracticeData.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
     faTrashAlt, faPenToSquare, faTable, faFloppyDisk, faForward, faPlus, faInfo,
     faBan, faGlobe, faUser, faShuffle, faMicrophone, faRetweet, faChartSimple, faVolumeHigh
@@ -17,7 +18,7 @@ function SpeakingPractice() {
     const { para_id } = useParams();
     const { currentUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    const { userInfo, isLoading, setIsLoading, para, setPara, allParaId } = SpeakingPracticeData(currentUser, para_id);
+    const { userInfo, isLoading, setIsLoading, para, setPara, allParaId, topUser, setTopUser} = SpeakingPracticeData(currentUser, para_id);
     const initialFormState = {
         user_id: userInfo.id,
         topic: '',
@@ -564,7 +565,7 @@ function SpeakingPractice() {
         "border-radius": "10px",
         textAlign: 'left'
     };
-
+    console.log(topUser)
     return (
         <div className={'background-image-repeat'}>
             <div class="container pb-5">
@@ -936,6 +937,23 @@ function SpeakingPractice() {
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+                                <div> 
+                                <ResponsiveContainer width="100%" height={(topUser.length * 50)}>
+                                <BarChart data={topUser} layout="vertical">
+                                    <XAxis height={50} type="number" tick={{ fill: 'white' }}
+                                    label={{ value: 'Skip Time', corlor: "white", position: 'insideBottom', style: { fill: 'white' } }} />
+                                    <YAxis dataKey="user_id" type="category" tick={{ fill: 'white' }} width={100} />
+                                    <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'rgb(23, 32, 42)', // Tooltip background color
+                                        borderColor: 'black', // Tooltip border color
+                                        color: 'white' // Text color inside the tooltip
+                                    }}
+                                    />
+                                    <Bar dataKey="duration" fill="#F2F3F4" barSize={(topUser.length * 50) / topUser.length} />
+                                </BarChart>
+                                </ResponsiveContainer>
                                 </div>
                             </div>
                         )}

@@ -776,6 +776,34 @@ def daily_averge_per_word(user_id, day, country, city):
     average_dur_per_day["date"] = pd.to_datetime(average_dur_per_day["date"]).dt.strftime('%Y-%m-%d')
     return average_dur_per_day.to_dict("records")
 
+@app.route('/get_static_one_paragraph/<user_id>/<para_id>', methods=['POST','GET'])
+def get_static_one_paragraph(user_id, para_id):
+    given_user_id = user_id
+    top_n = 3
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_done WHERE para_id='{para_id}'"
+        cursor.execute(query)
+    done_results = cursor.fetchall()
+    done_results = pd.DataFrame(done_results)
+    if len(done_results) == 0:
+        return []
+    top_df = (done_results.groupby('user_id')["duration"].min()).reset_index()
+    top_df = top_df.sort_values(by='duration', ).reset_index(drop=True)
+    top_df = top_df.reset_index()
+    top_df["duration"] = round(top_df["duration"]/1000,2)
+    top_df["index"] = top_df["index"]+1
+    user_position = top_df[top_df['user_id'] == given_user_id].index[0] if given_user_id in top_df['user_id'].tolist() else -1
+
+    if user_position != -1:
+        top_rows = top_df[:top_n]
+        user_row = top_df[top_df["user_id"] == user_id]
+        top_rows = pd.concat([top_rows, user_row])
+    else:
+        top_rows = top_df.head(top_n)
+
+    return top_rows.to_dict("records")
+
 @app.route('/add_voca', methods=['POST'])
 def add_voca():
     data = request.json
