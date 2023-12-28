@@ -261,7 +261,7 @@ function SpeakingPractice() {
     const finalizeSpeakingSession = () => {
         const tempDuration = performance.now() - startTime;
         const duration = timeElapsed + tempDuration;
-        const warningSkip = skipcount > (breakingWords.length / 2) || skipcount > 10;
+        const warningSkip = skipcount > (breakingWords.length / 2) || skipcount > 25;
 
         handleFinish(duration, warningSkip);
     }
