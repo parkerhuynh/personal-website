@@ -776,6 +776,55 @@ def daily_averge_per_word(user_id, day, country, city):
     average_dur_per_day["date"] = pd.to_datetime(average_dur_per_day["date"]).dt.strftime('%Y-%m-%d')
     return average_dur_per_day.to_dict("records")
 
+@app.route('/get_static_one_paragraph/<user_id>/<para_id>', methods=['POST','GET'])
+def get_static_one_paragraph(user_id, para_id):
+    user_id = int(user_id)
+    top_n = 2
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_done WHERE para_id='{para_id}'"
+        cursor.execute(query)
+    done_results = cursor.fetchall()
+    done_results = pd.DataFrame(done_results)
+    if len(done_results) == 0:
+        return {
+            "top_users": [],
+            "user_trails": []
+        }
+    
+    connection = make_conn()
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM users"
+        cursor.execute(query)
+    user_results = cursor.fetchall()
+    user_results = pd.DataFrame(user_results)[["id","username", "email"]]
+
+    top_df = (done_results.groupby('user_id')["duration"].min()).reset_index()
+    top_df = top_df.sort_values(by='duration', ).reset_index(drop=True)
+    top_df = top_df.reset_index()
+    top_df["duration"] = round(top_df["duration"]/1000,2)
+    user_position = top_df[top_df['user_id'] == user_id].index[0] if user_id in top_df['user_id'].tolist() else -1
+
+    if user_position != -1:
+        top_rows = top_df[:top_n]
+        
+        if user_position > top_n:
+            user_row = top_df[top_df["user_id"] == user_id]
+            top_rows = pd.concat([top_rows, user_row])
+            
+        user_trails = done_results[done_results["user_id"] == user_id]["duration"].reset_index()
+        user_trails["duration"] = round(user_trails["duration"]/1000,4)
+        user_trails = user_trails.to_dict("records")
+    else:
+        top_rows = top_df.head(top_n)
+        user_trails = []
+    top_rows["fill"] = top_rows["user_id"].apply(lambda x: "#28B463" if x == user_id else "#FDFEFE")
+    top_rows = top_rows.merge(user_results,left_on="user_id", right_on="id")
+    return {
+            "top_users": top_rows.to_dict("records"),
+            "user_trails": user_trails
+        }
+
 @app.route('/add_voca', methods=['POST'])
 def add_voca():
     data = request.json
