@@ -1,24 +1,28 @@
 import React, { useState, useEffect, CSSProperties, useRef } from 'react';
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../../../components/AuthContext.js';
-import axios from 'axios';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend } from 'recharts';
 import { SpeakingPracticeData } from './SpeakingPracticeData.js';
+import SpeakingHelp from './SpeakingHelp.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
     faTrashAlt, faPenToSquare, faTable, faFloppyDisk, faForward, faPlus, faInfo,
     faBan, faGlobe, faUser, faShuffle, faMicrophone, faRetweet, faChartSimple, faVolumeHigh
 } from '@fortawesome/free-solid-svg-icons';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
-import { ordinalToNumber } from "./ordinalToNumber"
-import { wordToNumber } from "./wordToNumber"
+
 import { useHotkeys } from 'react-hotkeys-hook';
+import { normalizeAndProcessWord, skipwords, CustomTick, wordCompletedColor, formatDuration, saveSpeakingEvent } from './Utils.js'
+import { onDelete, calculateDuration, breakingWordProcessing, handleRandom, saveSpeakingWord } from './Utils.js'
 
 function SpeakingPractice() {
     const { para_id } = useParams();
     const { currentUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    const { userInfo, isLoading, setIsLoading, para, setPara, allParaId, topUser, setTopUser} = SpeakingPracticeData(currentUser, para_id);
+    const { userInfo, isLoading, setIsLoading, para, 
+        setPara, topUser, setTopUser, trials, setTrials,
+         breakingWords, setBreakingWords, skipPassWords, diffPassWords } = SpeakingPracticeData(currentUser, para_id);
     const initialFormState = {
         user_id: userInfo.id,
         topic: '',
@@ -29,7 +33,6 @@ function SpeakingPractice() {
     const [finish, setFinish] = useState(false)
     const [timeElapsed, setTimeElapsed] = useState(0)
     const [startTime, setStartTime] = useState(0)
-
     const [currentId, setCurrentId] = useState(0)
     const [dropboxTop, setDropboxTop] = useState(203)
     const [dropboxLeft, setDropboxLeft] = useState(0)
@@ -42,14 +45,10 @@ function SpeakingPractice() {
     const [skipWanring, setSkipWanring] = useState(false);
     const [startWordDuration, setWordDuration] = useState(performance.now());
     const [pronunciation, setPronunciation] = useState('');
-    const [showDefinitionDropdown, setShowDefinitionDropdown] = useState(false);
-    const [dropboxDefTop, setDropboxDefTop] = useState(0)
-    const [dropboxDefLeft, setDropboxDefLeft] = useState(0)
-    const [selectedWord, setSelectedWord] = useState('')
-    const [definitionWord, setdefinitionWord] = useState([])
     const containerRef = useRef(null);
-    const [show, setShow] = useState(false);
-
+    const [helpShow, setHelpShow] = useState(false);
+    const [temForm, setTemForm] = useState(initialFormState);
+    const [userOption, setUserOption] = useState(true);
 
     const {
         transcript,
@@ -57,15 +56,15 @@ function SpeakingPractice() {
         finalTranscript,
         resetTranscript,
     } = useSpeechRecognition()
-
     // Edit PARAGRAPH
     const saveEdit = async () => {
         setStartTime(performance.now())
         try {
             setIsEditing(false);
             var jsonbody = {
-                ...temForm, content: para_processing(temForm.content)
+                ...temForm, content: temForm.content
             }
+            setBreakingWords(breakingWordProcessing(jsonbody.content))
             setPara(jsonbody)
             await axios.post(`/update_speaking_para`, jsonbody).then(async () => {
                 console.log('successful!')
@@ -76,18 +75,7 @@ function SpeakingPractice() {
         }
     };
 
-    const onDelete = async () => {
-        try {
-            await axios.post(`/delete_speaking_pata/${para.para_id}`).then(
-                window.location.href = `/speaking_para`
-            )
-        } catch (error) {
-            console.error('Error deleting deadline:', error);
-        }
-    };
 
-    const [temForm, setTemForm] = useState(initialFormState);
-    const [userOption, setUserOption] = useState(true);
 
     const handleParaTableClick = () => {
         window.location.href = `/speaking_para`
@@ -97,9 +85,8 @@ function SpeakingPractice() {
         setTemForm(para)
 
         if (state) {
-            let temp_duration = performance.now() - startTime
-            let duration = timeElapsed + temp_duration
-            setTimeElapsed(duration)
+            const duration = calculateDuration(performance.now(), startTime, timeElapsed);
+            setTimeElapsed(duration);
         }
     };
 
@@ -107,77 +94,22 @@ function SpeakingPractice() {
         setStartTime(performance.now())
         setIsEditing(false);
     };
-    const para_processing = (text) => {
-        // var text = text.replace(/\n/g, '.')
-        var text = text.replace(/\.\./g, '')
-        var text = text.replace(/\.([^\s])/g, '. $1');
-        var text = text.replace(`'s`, '');
-        var text = text.replace(`'`, '');
-        return text
-    };
-
-    const word_processsing = (raw_word) => {
-        var raw_word = raw_word.replace(/,^[^a-zA-Z0-9]*|/mg, "").toLowerCase()
-        var raw_word = raw_word.replace(/\./g, '')
-        var raw_word = raw_word.replace(/:/g, '');
-        var raw_word = raw_word.replace(",", '');
-        var raw_word = raw_word.replace(".", '');
-        var raw_word = raw_word.replace(";", '');
-
-        return raw_word
-    }
 
     const handleUserOption = () => {
         setUserOption(!userOption)
     };
 
-    function normalizeWord(word) {
-        const lowerCaseWord = word.toLowerCase();
-        return wordToNumber[lowerCaseWord] || ordinalToNumber[lowerCaseWord] || word;
-    }
 
-
-    const yourOtherParaId = allParaId.filter(para => para.user_id === userInfo.id);
-    const skipwords = ["\n\n", "\n"]
-    const wordlist = para.content.split(" ")
-    var breaking_Words = []
-    if (wordlist.length > 1) {
-        for (let i = 0; i <= (wordlist.length - 1); i++) {
-            let words = separateString(wordlist[i]);
-            for (let j = 0; j <= (words.length - 1); j++) {
-                breaking_Words.push(words[j])
-            }
-        }
-    } else {
-        breaking_Words = []
-    }
-    const handleRandom = async () => {
-        var ramdom_para_id = 0
-        let currentItem = para.para_id
-        if (userOption) {
-            if (yourOtherParaId.length > 1) {
-                let filteredList = yourOtherParaId.filter(item => item.para_id !== currentItem);
-                ramdom_para_id = filteredList[Math.floor(Math.random() * filteredList.length)]
-                window.location.href = `/practice/${ramdom_para_id.para_id}`
-            }
-        } else {
-            if (allParaId.length > 1) {
-                let filteredList = allParaId.filter(item => item.para_id !== currentItem);
-                ramdom_para_id = filteredList[Math.floor(Math.random() * filteredList.length)]
-                window.location.href = `/practice/${ramdom_para_id.para_id}`
-            }
-        }
-    };
     const handleProfile = async () => {
         window.location.href = `/speaking_statistic`
     };
-    function handleStartPause () {
+
+    function handleStartPause() {
         setState(!state);
         if (finish) {
             setTimeElapsed(0)
             setFinish(false)
         }
-
         if (state) {
             SpeechRecognition.stopListening()
             let temp_duration = performance.now() - startTime
@@ -190,37 +122,6 @@ function SpeakingPractice() {
             SpeechRecognition.startListening({ continuous: true })
         }
     };
-
-    const saveSpeakingEvent = async (completed_word, word_level, word_duration, currentId) => {
-        const formData = {
-            user_id: userInfo.id,
-            para_id: para.para_id,
-            duration: word_duration,
-            word: completed_word,
-            level: word_level,
-            index_para: currentId
-        }
-        try {
-            await axios.post('/add_speaking_event', formData);
-        } catch (error) {
-            console.error('Error submitting form:', error);
-        }
-    }
-
-    const saveSpeakingWord = async (speaking_word, checking_word, index_para) => {
-        const formData = {
-            user_id: userInfo.id,
-            para_id: para.para_id,
-            speaking_word: speaking_word,
-            checking_word: checking_word,
-            index_para: index_para
-        }
-        try {
-            await axios.post('/add_speaking_word', formData);
-        } catch (error) {
-            console.error('Error submitting form:', error);
-        }
-    }
 
     const saveCompletedSpeaking = async (completed_duration) => {
         const formData = {
@@ -247,29 +148,28 @@ function SpeakingPractice() {
         setState(false)
         setFailTime(0)
         setshowDropdown(false)
-        setShowDefinitionDropdown(false)
     }
 
     const handleCurrentword = (checkingWord, durationWord, completedpart, fail_time) => {
         setCompletedWords(completedpart);
-        saveSpeakingEvent(checkingWord, fail_time, durationWord, currentId)
+        saveSpeakingEvent(checkingWord, fail_time, durationWord, currentId, userInfo, para)
         setWordDuration(performance.now())
         setFailTime(0)
         setshowDropdown(false)
-        setShowDefinitionDropdown(false)
     }
 
-    const handleFaildTime = (checking_word) => {
+    const handleFailedTime = (checking_word) => {
         setFailTime(failTime + 1)
         if (failTime >= 1) {
             if (!showDropdown) {
                 fetchPronunciation(checking_word)
                 setshowDropdown(true)
             }
-            setShowDefinitionDropdown(false)
         }
     }
     const handleFinish = (duration, warningSkip) => {
+        
+
         setTimeElapsed(duration)
         setFinish(true)
         resetTranscript()
@@ -277,112 +177,121 @@ function SpeakingPractice() {
         setCompletedWords([])
         setState(false)
         setshowDropdown(false)
-        setShowDefinitionDropdown(false)
         if (warningSkip == false) {
             saveCompletedSpeaking(duration)
+            
+            const index = topUser.findIndex(item => item.user_id === userInfo.id);
+            let topUser_update;
+            let new_duration = (duration/1000).toFixed(4)
+            if (index === -1) {
+                // User ID not found, add a new item
+                topUser_update = [...topUser, {
+                    user_id: userInfo.id,
+                    duration: new_duration,
+                    fill: "#28B463",
+                    username: userInfo.username}]
+                setTopUser(topUser_update)
+            } else if ((index !== -1) & (topUser[index].duration > new_duration)) {
+                topUser_update = topUser
+                topUser_update[index].duration = new_duration;
+                setTopUser(topUser_update)
+            }
+
+
+            let trialsUpdate = [...trials, {index: trials.length +1, duration: new_duration}]
+            setTrials(trialsUpdate)
+
         }
         setSkipWanring(warningSkip)
+        
     }
-    const handleSkip = () => {
 
+
+    const handleSkip = () => {
         if (state) {
             let newSkipCount = skipcount + 1
             setSkipcount(newSkipCount)
-            let checking_word = normalizeWord(word_processsing(breaking_Words[currentId]))
-            let newcompletedWord = { word: breaking_Words[currentId], id: currentId, level: 100 };
-            let durationWord = (performance.now() - startWordDuration)
-            let completedpart = [...completedWords, newcompletedWord]
 
-            handleCurrentword(checking_word, durationWord, completedpart, 100)
-
-            if (completedpart.length === breaking_Words.length) {
-                let temp_duration = performance.now() - startTime
-                let duration = timeElapsed + temp_duration
-                let warningSkip = newSkipCount > (breaking_Words.length / 2) || newSkipCount > 20
-
-                handleFinish(duration, warningSkip)
-
-            } else {
-                var next_id = currentId + 1
-                setCurrentId(next_id)
-
-                for (let k = next_id; k <= (breaking_Words.length - 1); k++) {
-                    var checking_next_word = normalizeWord(word_processsing(breaking_Words[k]))
-
-                    if (skipwords.includes(checking_next_word)) {
-                        let newcompletednewWord = { word: checking_next_word, id: k, level: 50 };
-                        completedpart = [...completedpart, newcompletednewWord];
-                        setCompletedWords(completedpart);
-                        setFailTime(0)
-                        setshowDropdown(false)
-                        setShowDefinitionDropdown(false)
-                        setCurrentId(k + 1)
-
-                        if (completedpart.length === breaking_Words.length) {
-                            let temp_duration = performance.now() - startTime
-                            let duration = timeElapsed + temp_duration
-                            let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 20
-                            handleFinish(duration, warningSkip)
-                        }
-                    } else {
-                        break
-                    }
-                }
-            }
+            const currentWordToCheck = breakingWords[currentId];
+            processCorrectWord(currentWordToCheck, false);
         }
     };
 
     const STEPWISE = () => {
+        if (breakingWords.length <= 1 || transcript === "" || !state) {
+            return;
+        }
+        const lastWordSpoken = transcript.split(' ').pop().toLocaleLowerCase();
+        const currentWordToCheck = breakingWords[currentId];
+        saveSpeakingWord(lastWordSpoken, currentWordToCheck, currentId, userInfo, para);
 
-        if (breaking_Words.length > 1 & transcript !== "" & state == true) {
-            var last_word_speak = normalizeWord(word_processsing(transcript.split(' ').pop()))
-            var checking_word = normalizeWord(word_processsing(breaking_Words[currentId]))
-            saveSpeakingWord(last_word_speak, checking_word, currentId)
+        if (lastWordSpoken !== currentWordToCheck || lastWordSpoken === "") {
+            handleFailedTime(currentWordToCheck);
+            return;
+        }
+        processCorrectWord(currentWordToCheck, true);
+    };
 
-            if ((last_word_speak == checking_word) & (last_word_speak !== "")) {
-                let newcompletedWord = { word: breaking_Words[currentId], id: currentId, level: failTime };
-                let durationWord = (performance.now() - startWordDuration);
-                let completedpart = [...completedWords, newcompletedWord];
-                handleCurrentword(checking_word, durationWord, completedpart, failTime)
+    const processCorrectWord = (word, isSuccess) => {
+        let fail_time;
+        if (isSuccess) {
+            fail_time = failTime
+        } else {
+            fail_time = 100
+        }
+        const newCompletedWord = {
+            word: word,
+            id: currentId,
+            level: fail_time
+        };
 
-                if (completedpart.length === breaking_Words.length) {
-                    let temp_duration = performance.now() - startTime
-                    let duration = timeElapsed + temp_duration
-                    let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 10
-                    handleFinish(duration, warningSkip)
+        const durationWord = performance.now() - startWordDuration;
+        const completedPart = [...completedWords, newCompletedWord];
 
-                } else {
-                    var next_id = currentId + 1
-                    setCurrentId(next_id)
 
-                    for (let k = next_id; k <= (breaking_Words.length - 1); k++) {
-                        var checking_next_word = normalizeWord(word_processsing(breaking_Words[k]))
+        handleCurrentword(word, durationWord, completedPart, fail_time);
 
-                        if (skipwords.includes(checking_next_word)) {
-                            let newcompletednewWord = { word: checking_next_word, id: k, level: 50 };
-                            completedpart = [...completedpart, newcompletednewWord];
-                            setCompletedWords(completedpart);
-                            setFailTime(0)
-                            setshowDropdown(false)
-                            setShowDefinitionDropdown(false)
-                            setCurrentId(k + 1)
-                            
-                            if (completedpart.length === breaking_Words.length) {
-                                let temp_duration = performance.now() - startTime
-                                let duration = timeElapsed + temp_duration
-                                let warningSkip = skipcount > (breaking_Words.length / 2) || skipcount > 20
-                                handleFinish(duration, warningSkip)
-                            }
-                        } else {
-                            break
-                        }
-                    }
-                }
-            } else {
-                handleFaildTime(checking_word)
+        if (completedPart.length === breakingWords.length) {
+            finalizeSpeakingSession();
+            return;
+        }
+        prepareForNextWord(completedPart);
+    }
+
+    const finalizeSpeakingSession = () => {
+        const tempDuration = performance.now() - startTime;
+        const duration = timeElapsed + tempDuration;
+        const warningSkip = skipcount > (breakingWords.length / 2) || skipcount > 10;
+
+        handleFinish(duration, warningSkip);
+    }
+
+    const prepareForNextWord = (completedPart) => {
+        let nextId = currentId + 1;
+        setCurrentId(nextId);
+
+        for (let k = nextId; k < breakingWords.length; k++) {
+            const nextWordToCheck = normalizeAndProcessWord(breakingWords[k]);
+            if (!skipwords.includes(nextWordToCheck)) {
+                break;
+            }
+
+            const newCompletedWord = {
+                word: nextWordToCheck,
+                id: k,
+                level: 50
+            };
+            completedPart.push(newCompletedWord);
+            setCompletedWords(completedPart);
+            setFailTime(0);
+            setshowDropdown(false);
+            setCurrentId(k + 1);
+
+            if (completedPart.length === breakingWords.length) {
+                finalizeSpeakingSession();
             }
         }
-    };
+    }
 
     useEffect(() => {
         STEPWISE()
@@ -410,40 +319,20 @@ function SpeakingPractice() {
     } else {
         displayStyle = "none";
     }
-    function separateString (str)  {
-        // Regular expression with capturing groups for \n\n, \n, and -
-        const regex = /(\n\n|\n)/;
-        return str.split(regex).filter(s => s); // filter out empty strings
-    }
-    const uncompletedWords = breaking_Words.slice(currentId)
+
+    let uncompletedWords = breakingWords.slice(currentId)
+    const processedUncompletedWords = uncompletedWords.map(word => uncompletedWordProcessing(word))
+
     const dropdownTranscript = transcript.split(' ').slice(Math.max(transcript.split(' ').length - 3, 0)).join(" ")
 
-    const formatDuration = (duration) => {
-        let formattedTime;
-        duration = duration / 1000
-        if (duration < 60) {
-            formattedTime = duration.toFixed(2) + " seconds";
-        } else {
-            let minutes = Math.floor(duration / 60);
-            let seconds = (duration % 60).toFixed(2);
-            formattedTime = minutes + " minutes and " + seconds + " seconds";
-        }
-        return formattedTime;
-    }
 
-    const wordColor = (level) => {
-        if (level <= 3) {
-            return "#2ECC71"
-        } else if (level > 3 & level < 10) {
-            return "#5DADE2"
-        } else if (level >= 10 & level < 20) {
-            return "#F4D03F"
-        } else if (level >= 20 & level < 50) {
-            return "#E67E22"
-        } else if (level == 50) {
-            return "#8E44AD"
+    function uncompletedWordProcessing (word) {
+        if (skipPassWords.includes(word)) {
+            return {word: word, color:"#FFA07A"}
+        } else if (diffPassWords.includes(word)) {
+            return {word: word, color:"#CCCCFF"}
         } else {
-            return "#E74C3C"
+            return {word: word, color:"#FDFEFE"}
         }
     }
 
@@ -454,7 +343,6 @@ function SpeakingPractice() {
                 utterance.onend = () => resolve(); // Resolve when speech ends
                 utterance.onerror = (e) => reject(e); // Reject on error
                 speechSynthesis.speak(utterance);
-                // fetchPronunciation(word); // Uncomment if this function is defined
             } else {
                 reject('Speech synthesis not supported');
             }
@@ -476,7 +364,6 @@ function SpeakingPractice() {
 
     const fetchPronunciation = async (word) => {
         try {
-            setdefinitionWord([])
             setPronunciation(word)
             const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
             let data = await response.json();
@@ -486,7 +373,6 @@ function SpeakingPractice() {
             if (phonetic) {
                 setPronunciation(phonetic); // Adjust according to API response structure
             }
-            setdefinitionWord(data.meanings)
         } catch (error) {
             setPronunciation(word);
         }
@@ -494,7 +380,7 @@ function SpeakingPractice() {
 
 
     useHotkeys('space',
-        () => { handleSpeechClick(breaking_Words[currentId]) },
+        () => { handleSpeechClick(breakingWords[currentId]) },
     )
     useHotkeys('enter',
         () => {
@@ -507,65 +393,20 @@ function SpeakingPractice() {
     useHotkeys('r',
         () => { reset() },
     )
-    const handleClick = async (e) => {
-        if (e.target.tagName === 'SPAN') {
-            const clickedSpan = e.target;
-            const wordRect = clickedSpan.getBoundingClientRect();
 
-            if (containerRef.current) {
-                const containerRect = containerRef.current.getBoundingClientRect();
-                setShowDefinitionDropdown(true)
-                setshowDropdown(false)
-                // Calculate the position relative to the container
-                const relativeX = wordRect.left - containerRect.left;
-                const relativeY = wordRect.top - containerRect.top;
-                let selected_Word = clickedSpan.textContent.trim().split(" ")[0]
-                selected_Word = normalizeWord(word_processsing(selected_Word))
-                setDropboxDefTop(relativeY)
-                setDropboxDefLeft(relativeX)
+    var updateTopUsers = topUser.sort((a, b) => a.duration - b.duration);
+    updateTopUsers.forEach((item, index) => {
+        item.ranking = index + 1; // Ranking starts at 1
+    });
 
-                setSelectedWord(selected_Word)
-                fetchPronunciation(selected_Word)
-
-
-            }
+    function wordDisplay (word) {
+        if (skipwords.includes(word)) {
+            return word
+        } else {
+            return " " + word
         }
-    };
 
-    const handleVocaClick = async (word, word_type, def_word) => {
-        const formData = {
-            word: word,
-            user_id: userInfo.id,
-            type: word_type,
-            definition: def_word
-        };
-        try {
-            await axios.post('/add_voca', formData);
-        } catch (error) {
-            console.error('Error submitting form:', error);
-        }
     }
-
-    const dropdownStyle = {
-        position: 'relative',
-        display: 'inline-block',
-        width: "40px"
-    };
-
-
-
-    const dropdownContentStyle = {
-        display: show ? 'block' : 'none',
-        position: 'absolute',
-        backgroundColor: '#f9f9f9',
-        width: '1000px',
-        boxShadow: '0px 8px 16px 0px rgba(0,0,0,0.2)',
-        padding: '12px 16px',
-        zIndex: 1,
-        "border-radius": "10px",
-        textAlign: 'left'
-    };
-    console.log(topUser)
     return (
         <div className={'background-image-repeat'}>
             <div class="container pb-5">
@@ -586,117 +427,7 @@ function SpeakingPractice() {
                                     <div class="row m-0">
                                         <div class="col-2 p-3">
                                             {/* -----------------------------Help button-------------------- */}
-                                            <button style={dropdownStyle} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} className="btn btn-sm btn-light text-center">
-                                                <FontAwesomeIcon icon={faInfo} />
-                                                <div class="text-left" style={dropdownContentStyle}>
-                                                    <ul>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faTable} />
-                                                            to link to your paragraph table.
-
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faPenToSquare} />
-                                                            to edit your paragraphs. <span class="text-danger"> You cannot edit the paragraphs created by other users.</span>
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faTrashAlt} />
-                                                            to delete your paragraphs. <span class="text-danger"> You cannot delete the paragraphs created by other users.</span>
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faChartSimple} />
-                                                            to show your statistic.
-
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faUser} />
-                                                            to show only your paragraphs or Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faGlobe} />
-                                                            to show all paragraphs.
-
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faShuffle} />
-                                                            to randomly select a paragraph to practice.
-                                                        </li>
-
-
-
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faFloppyDisk} />
-                                                            to save your edit.
-                                                        </li>
-
-                                                        <li class="my-3">
-                                                            Press
-                                                            <FontAwesomeIcon style={{ width: "40px" }} icon={faBan} />
-                                                            to cancel your edit.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <button type="button" class="btn btn-outline-danger mx-2" >
-                                                                <FontAwesomeIcon icon={faMicrophone} />
-                                                            </button> or <span class="text-info">ENTER </span>
-                                                            to mute your mic.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <button type="button" class="btn btn-outline-success mx-2" >
-                                                                <FontAwesomeIcon icon={faMicrophone} />
-                                                            </button> or <span class="text-info">ENTER </span>
-                                                            to activate your mic.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <button type="button" class="btn btn-outline-success mx-2" >
-                                                                <FontAwesomeIcon icon={faRetweet} />
-                                                            </button> or <span class="text-info">R </span>
-                                                            to reset your work.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <span class="text-info"> SPACE </span>
-                                                            to hear the pronunciation of the next word.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Press
-                                                            <button type="button" class="btn btn-outline-info mx-2" >
-                                                                <FontAwesomeIcon icon={faForward} />
-                                                            </button> or <span class="text-info"> CTRL </span>
-                                                            to skip the next word.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Click a word in the paragraph to show its pronunciation and its meanings. Click
-                                                            <button type="button" style={{ "border-radius": "50%" }} class="m-1 btn btn-outline-dark btn-sm">
-                                                                <FontAwesomeIcon icon={faPlus} flip size="2xs" />
-                                                            </button>
-                                                            to save its meanings.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Click a word in the paragraph to show its pronunciation and its meanings. Click
-                                                            <button type="button" style={{ "border-radius": "50%" }} class="m-1 btn btn-outline-dark btn-sm">
-                                                                <FontAwesomeIcon icon={faPlus} flip size="2xs" />
-                                                            </button>
-                                                            to save its meanings.
-                                                        </li>
-                                                        <li class="my-3">
-                                                            Words spoken <span class="text-success"><b>up to 5 times  </b> </span>are highlighted in <span class="text-success"><b>green</b></span>,
-                                                            those spoken between <span class="text-info"><b>6 and 20 times</b>  </span>are highlighted in <span class="text-info"> <b> blue</b></span>.
-                                                            Words repeated more than <span class="text-warning"><b>20 but less than 35 times</b>  </span>are in <span class="text-warning"><b>yellow</b></span>
-                                                            , while those spoken between <span style={{ color: "#DC7633" }} ><b>35 and 50 times </b></span>are in <span style={{ color: "#DC7633" }} ><b>orange </b></span>.
-                                                            Words that are <span class="text-danger"><b>not spoken and skipped </b> </span>  are marked in <span class="text-danger"><b>red </b> </span>.
-                                                        </li>
-
-                                                    </ul>
-                                                </div>
-                                            </button>
+                                            <SpeakingHelp helpShow={helpShow} setHelpShow={setHelpShow} />
                                         </div>
                                         <div class="col-8 p-3">
                                             {isEditing ? (
@@ -772,7 +503,7 @@ function SpeakingPractice() {
                                                                 <button onClick={handleEdit} className="btn btn-sm btn-light text-center m-1">
                                                                     <FontAwesomeIcon icon={faPenToSquare} />
                                                                 </button>
-                                                                <button onClick={onDelete} className="btn btn-sm btn-light text-center m-1">
+                                                                <button onClick={(e) => { onDelete(para.para_id) }} className="btn btn-sm btn-light text-center m-1">
                                                                     <FontAwesomeIcon icon={faTrashAlt} />
                                                                 </button>
                                                             </>
@@ -794,7 +525,7 @@ function SpeakingPractice() {
                                                         <FontAwesomeIcon icon={faGlobe} />
                                                     </button>
                                                 )}
-                                                <button onClick={handleRandom} className="btn btn-sm btn-light text-center m-1">
+                                                <button onClick={(e) => { handleRandom(para, userInfo, userOption) }} className="btn btn-sm btn-light text-center m-1">
                                                     <FontAwesomeIcon icon={faShuffle} />
                                                 </button>
                                             </div>
@@ -818,22 +549,23 @@ function SpeakingPractice() {
                                         ) : (
                                             <div class="px-5 py-2">
                                                 <div>
-                                                    <pre onClick={handleClick} style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
+                                                    <pre style={{ "text-align": "justify", "white-space": "pre-wrap" }} class="card-text text-light m-5">
                                                         {completedWords.map((word, index) => {
                                                             return (
                                                                 <span key={index}
-                                                                    style={{ color: wordColor(word["level"]) }}
+                                                                    style={{ color: wordCompletedColor(word["level"]) }}
                                                                     ref={(index === (completedWords.length - 1)) ? currWord : null}>
-                                                                    {word["word"] + " "}
+                                                                    {wordDisplay(word["word"])}
 
                                                                 </span>
                                                             )
                                                         })}
-                                                        {uncompletedWords.map((word, index) => {
+                                                        {processedUncompletedWords.map((word, index) => {
                                                             return (
                                                                 <span key={index}
-                                                                    class="text-light" ref={(index === 0) ? nextWord : null}>
-                                                                    {word + " "}
+                                                                    style={{ color: word["color"] }}
+                                                                    ref={(index === 0) ? nextWord : null}>
+                                                                    {wordDisplay(word["word"])}
                                                                     {(<div style={{
                                                                         "display": displayStyle,
                                                                         "position": "absolute",
@@ -851,57 +583,6 @@ function SpeakingPractice() {
                                                                     </div>
                                                                     )}
 
-                                                                    {(<div
-                                                                        onMouseLeave={() => setShowDefinitionDropdown(false)}
-                                                                        style={{
-                                                                            "display": showDefinitionDropdown ? "block" : "none",
-                                                                            "position": "absolute",
-                                                                            "top": dropboxDefTop + 19,
-                                                                            "left": dropboxDefLeft - 170,
-                                                                            "z-index": "1",
-                                                                            "background-color": 'rgb(250, 250, 250, 0.9)',
-
-                                                                            "width": "400px",
-                                                                            "border-radius": "25px"
-                                                                        }} class="text-primary " >
-                                                                        <h5 class="m-0 p-0 text-center text-dark"><b>{selectedWord}</b></h5>
-                                                                        <p class="m-0 px-3"><b>Pronunciation: {pronunciation}</b> <FontAwesomeIcon class="mx-3" onClick={(e) => { handleSpeechClick(selectedWord) }} icon={faVolumeHigh} style={{ height: "20px", width: "20px" }} size="2xs" /></p>
-                                                                        <div>
-                                                                            {(definitionWord.length > 0) ? (
-                                                                                <>
-                                                                                    <p class="m-0 ps-3"><b>Meanings:</b> </p>
-                                                                                    <ol class="m-0 ps-5">
-                                                                                        {definitionWord.map((item) => (
-                                                                                            <li class="text-danger">{item.partOfSpeech}
-                                                                                                {item.definitions ? (
-                                                                                                    <ul class="m-0 px-3 square text-dark" >
-                                                                                                        {item.definitions.slice(0, 3).map((subitem) => (
-                                                                                                            <li>
-                                                                                                                <div class="row">
-                                                                                                                    <pre class="text-dark pe-0" style={{ "text-align": "justify", "white-space": "pre-wrap", "width": "85%" }}>{subitem.definition}</pre>
-                                                                                                                    <div style={{ "width": "10%" }}>
-                                                                                                                        <button type="button" style={{ "border-radius": "50%" }} class="btn btn-outline-dark btn-sm ms-0" onClick={(e) => { handleVocaClick(selectedWord, item.partOfSpeech, subitem.definition) }}>
-                                                                                                                            <FontAwesomeIcon icon={faPlus} flip size="2xs" />
-                                                                                                                        </button>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </li>
-                                                                                                        ))}
-                                                                                                    </ul>
-                                                                                                ) : (null)}
-
-                                                                                            </li>
-                                                                                        ))}
-                                                                                    </ol>
-                                                                                </>
-
-                                                                            ) : (null)}
-
-
-                                                                        </div>
-
-                                                                    </div>
-                                                                    )}
                                                                 </span>
                                                             )
                                                         })}
@@ -938,23 +619,51 @@ function SpeakingPractice() {
                                         </div>
                                     </div>
                                 </div>
-                                <div> 
-                                <ResponsiveContainer width="100%" height={(topUser.length * 50)}>
-                                <BarChart data={topUser} layout="vertical">
-                                    <XAxis height={50} type="number" tick={{ fill: 'white' }}
-                                    label={{ value: 'Skip Time', corlor: "white", position: 'insideBottom', style: { fill: 'white' } }} />
-                                    <YAxis dataKey="user_id" type="category" tick={{ fill: 'white' }} width={100} />
-                                    <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'rgb(23, 32, 42)', // Tooltip background color
-                                        borderColor: 'black', // Tooltip border color
-                                        color: 'white' // Text color inside the tooltip
-                                    }}
-                                    />
-                                    <Bar dataKey="duration" fill="#F2F3F4" barSize={(topUser.length * 50) / topUser.length} />
-                                </BarChart>
-                                </ResponsiveContainer>
-                                </div>
+                                {(updateTopUsers.length > 0 || topUser.length > 0) ? (
+                                    <div class="row mx-0 my-5 pt-5 px-0 d-flex justify-content-center" style={{ backgroundColor: 'rgb(0, 1, 2, 0.5)' }}>
+                                    <h3 class="text-center text-light">Statistic</h3>
+                                        {updateTopUsers.length > 0 ? (
+                                            <div class="col-4 mx-0">
+                                            <h5 class="text-center text-light">Top Speakers</h5>
+                                            <ResponsiveContainer width="100%" height={Math.max(100, updateTopUsers.length * 50)}>
+                                                <BarChart data={updateTopUsers} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                                    <XAxis height={50} type="number" tick={{ fill: 'white', fontSize: '12px'}}
+                                                        label={{ fontSize: '14px', value: 'Seconds', color: "white", position: 'insideBottom', style: { fill: 'white' } }} />
+                                                    <YAxis dataKey="username" type="category" tick={<CustomTick data={updateTopUsers} />} width={120}
+                                                        interval={0} // Ensures all ticks are rendered
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            backgroundColor: 'rgb(23, 32, 42)',
+                                                            borderColor: 'black',
+                                                            color: 'white'
+                                                        }}
+                                                    />
+                                                    <Bar dataKey="duration" fill="#F2F3F4" barSize={20} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+    
+                                        ):(null)}
+                                        {topUser.length > 0 ? (
+                                        <div class="col-8 mx-0 ps-0 pe-2">
+                                         
+                                        <h5 class="text-center text-light">Your Pass Trails</h5>
+                                            <ResponsiveContainer width="100%" height={300}>
+                                                <LineChart data={trials} >
+                                                    <CartesianGrid strokeDasharray="2 20" stroke="#ccc" />
+                                                    <XAxis dataKey="index" stroke="white" height={90} tick={false} />
+                                                    <YAxis tick={{ fill: 'white', fontSize: '12px'}} stroke="white" yAxisId="left"
+                                                        label={{ value: 'Seconds', fontSize: '14px',angle: -90, fill: 'white' }} />
+                                                    <Tooltip />
+                                                    <Line type="monotone" name="Completed Time" dataKey="duration" yAxisId="left" stroke="#28B463" activeDot={{ r: 8 }} strokeWidth={2} />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>):(null)}
+    
+                                    </div>
+                                ): (null)}
+                                
                             </div>
                         )}
                     </div>
