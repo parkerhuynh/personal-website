@@ -407,6 +407,7 @@ def delete_task(task_id):
 @app.route('/get_speaking_para/<user_id>/<option>', methods=['GET'])
 def get_speaking_para(user_id, option):
     connection = make_conn()
+    user_id = int(user_id)
     with connection.cursor() as cursor:
         if option == "you":
             query = f"SELECT * FROM speaking_para WHERE user_id = {user_id}"
@@ -418,8 +419,46 @@ def get_speaking_para(user_id, option):
         return []
     results = pd.DataFrame(results)
     results['created_at'] = results['created_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM speaking_done"
+        cursor.execute(query)
+    done_results = cursor.fetchall()
+    done_results = pd.DataFrame(done_results)
+    if len(done_results) == 0:
+        done_results = pd.DataFrame(columns=[
+            'para_id',
+            'total_rows_all_users',
+            'min_duration_all_users',
+            'skip_value_min_duration_all_users',
+            'total_rows_given_user',
+            'min_duration_given_user',
+            'skip_value_min_duration_given_user'
+        ])
+    else:
+        all_users_results = done_results.groupby('para_id').agg(
+            total_rows_all_users=pd.NamedAgg(column='id', aggfunc='count'),
+            min_duration_all_users=pd.NamedAgg(column='duration', aggfunc='min'),
+            skip_value_min_duration_all_users=pd.NamedAgg(column='duration', aggfunc=lambda x: done_results.loc[x.idxmin(), 'skip'])
+        ).reset_index()
+
+        # Calculate the total row, minimum duration and its skip value for the given user_id
+        given_user_results = done_results[done_results['user_id'] == user_id].groupby('para_id').agg(
+            total_rows_given_user=pd.NamedAgg(column='id', aggfunc='count'),
+            min_duration_given_user=pd.NamedAgg(column='duration', aggfunc='min'),
+            skip_value_min_duration_given_user=pd.NamedAgg(column='duration', aggfunc=lambda x: done_results.loc[x.idxmin(), 'skip'])
+        ).reset_index()
+
+        # Merge the results for all users and the given user_id on para_id
+        final_results = pd.merge(all_users_results, given_user_results, on='para_id', how='left')
+
+        # If there are NaN values for the given user_id, replace them with 0
+        # final_results.fillna("None", inplace=True)
+        final_results['min_duration_all_users'] = round(final_results['min_duration_all_users'] / 1000, 2)
+        final_results['min_duration_given_user'] = round(final_results['min_duration_given_user'] / 1000, 2)
+    results = results.merge(final_results, on="para_id", how='left')
+    results.fillna("NaN", inplace=True)
     results = results.to_dict("records")
-    return jsonify(results)
+    return results
 
 @app.route('/add_speaking_para', methods=['POST'])
 def add_speaking_para():

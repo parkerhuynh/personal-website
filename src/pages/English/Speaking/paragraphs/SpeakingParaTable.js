@@ -133,6 +133,14 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
         "border-radius": "10px",
         textAlign: 'left'
     };
+
+    function corlorRowDisplay (item) {
+        if ((item.min_duration_given_user != "NaN") &(item.min_duration_given_user == item.min_duration_all_users)) {
+            return "#28B463"
+        } else {
+            return "#FDFEFE"
+        }
+    }
     return (
         <div>
             <div className="table py-4">
@@ -205,20 +213,24 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                 </div>
                 <table className="table table-dark table-bordered mt-4">
                     <thead>
-                        <tr>
+                        <tr style={{ verticalAlign: 'middle', textAlign: 'center' }} >
                             <th class='text-center' scope="col" style={{ width: "50px" }}>ID</th>
                             <th class='text-center' scope="col" style={{ width: "200px" }}>Topic</th>
                             <th class='text-center' scope="col" >Title</th>
-                            <th class='text-center' scope="col" style={{ width: "120px" }}>Created</th>
-                            <th class='text-center' scope="col" style={{ width: "70px" }}>length</th>
                             <th class='text-center' scope="col" style={{ width: "120px" }}>Level</th>
+                            <th class='text-center' scope="col" style={{ width: "70px" }}>length</th>
+                            <th class='text-center' scope="col" style={{ width: "72px" }}>Completed Time</th>
+                            <th class='text-center' scope="col" style={{ width: "120px" }}>Best Speak (second)</th>
+                            <th class='text-center' scope="col" style={{ width: "70px" }}>Skip Count</th>
+                            <th class='text-center' scope="col" style={{ width: "120px" }}>Created</th>
+                            
                             <th style={{ width: "50px" }} class='text-center' scope="col"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {filterPara.map((item, itemIndex) => (
-                            <tr onDoubleClick={() => handleParaClick(item.para_id)} key={itemIndex} style={{ backgroundColor: rowStripedStyle(itemIndex) }}>
-                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >{itemIndex + 1}</td>
+                            <tr onDoubleClick={() => handleParaClick(item.para_id)} key={itemIndex} style={{ backgroundColor: rowStripedStyle(itemIndex), color:corlorRowDisplay(item)}}>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center', color:corlorRowDisplay(item)}} class='text-center' >{itemIndex + 1}</td>
                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class='text-center' >
                                     {(editingId === item.id) ?
                                         (<input
@@ -230,7 +242,7 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                                         // onKeyPress={(e) => handleKeyPress(e, item.id)}
                                         />) :
                                         (<span>
-                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.topic}</Link>
+                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit', color:corlorRowDisplay(item)}} >{item.topic}</Link>
                                         </span>)
                                     }
                                 </td>
@@ -265,15 +277,9 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                                         </div>
                                         ) :
                                         (<span>
-                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.title}</Link>
+                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit', color:corlorRowDisplay(item)}}>{item.title}</Link>
                                         </span>)
                                     }
-                                </td>
-                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.date_render}</Link>
-                                </td>
-                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
-                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.content.split(' ').length}</Link>
                                 </td>
                                 <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                     {(editingId === item.id) ?
@@ -291,10 +297,27 @@ const SpeakingDataTable = ({ userInfo, paragraphs, setSpeakingParaData, processP
                                         </div>
                                         ) :
                                         (<span>
-                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' }} class="text-light">{item.level}</Link>
+                                            <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit', color:corlorRowDisplay(item)}}>{item.level}</Link>
                                         </span>)
                                     }
                                 </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' , color:corlorRowDisplay(item)}}>{item.content.split(' ').length}</Link>
+                                </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit', color:corlorRowDisplay(item)}}>{item.total_rows_given_user} ({item.total_rows_all_users}) </Link>
+                                </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' , color:corlorRowDisplay(item)}}>{item.min_duration_given_user} ({item.min_duration_all_users}) </Link>
+                                </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit', color:corlorRowDisplay(item) }}>{item.skip_value_min_duration_given_user} ({item.skip_value_min_duration_all_users}) </Link>
+                                </td>
+                                <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                                    <Link to={`/practice/${item.para_id}`} style={{ textDecoration: 'inherit' , color:corlorRowDisplay(item)}}>{item.date_render}</Link>
+                                </td>
+                                
+                                
                                 <td className="text-center" style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                                     {(item.user_id === userInfo.id) ? (
                                         <div>
