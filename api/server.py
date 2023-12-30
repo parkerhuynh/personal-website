@@ -667,7 +667,7 @@ def skip_count_words_func(user_id, day, country, city):
             event_results = event_results.sort_values(by="created_at")
         event_results['created_normalized'] = event_results['created_at'].dt.normalize()
         event_results = event_results[event_results['created_normalized'] > days_ago]
-        word_results = word_results.sort_values(by="created_at")
+        event_results = event_results.sort_values(by="created_at")
     if len(event_results) ==0:
         return []
     skip_count_words = event_results[event_results["level"] == 100]["word"].value_counts().reset_index()[:50]
@@ -751,9 +751,10 @@ def done_counts_func(user_id, day, country, city):
     done_counts = done_results["created_normalized"].value_counts().reset_index()
     
     done_counts["created_normalized"] = pd.to_datetime(done_counts["created_normalized"])
-    done_results = done_results.sort_values(by="created_at")
+    done_results = done_results.sort_values(by="created_normalized")
     done_results["created_normalized"] = done_results["created_normalized"].dt.strftime('%Y-%m-%d')
     done_counts = done_counts.rename(columns={"created_normalized": "date"})
+    print(done_counts)
     return done_counts.to_dict("records")
 
 @app.route('/skip_count_per_day_func/<user_id>/<day>/<country>/<city>', methods=['POST','GET'])
@@ -822,8 +823,8 @@ def daily_averge_per_word(user_id, day, country, city):
     average_dur_per_day["duration"] =average_dur_per_day["duration"].apply(lambda x: round(x, 2))
     average_dur_per_day = average_dur_per_day.rename(columns= {"created_normalized": "date"})
     average_dur_per_day["date"] = pd.to_datetime(average_dur_per_day["date"])
-    skip_count_per_day = skip_count_per_day.sort_values(by="date")
-    skip_count_per_day["date"] = skip_count_per_day["date"].dt.strftime('%Y-%m-%d')
+    average_dur_per_day = average_dur_per_day.sort_values(by="date")
+    average_dur_per_day["date"] = average_dur_per_day["date"].dt.strftime('%Y-%m-%d')
     return average_dur_per_day.to_dict("records")
 
 @app.route('/get_static_one_paragraph/<user_id>/<para_id>', methods=['POST','GET'])
