@@ -741,8 +741,7 @@ def done_counts_func(user_id, day, country, city):
 
         if timezone != 'Australia/Sydney':
             done_results["created_at"] = done_results["created_at"].dt.tz_localize('Australia/Sydney')
-            done_results["created_at"] = done_results["created_at"].dt.tz_convert(timezone) 
-            done_results = done_results.sort_values(by="created_at")   
+            done_results["created_at"] = done_results["created_at"].dt.tz_convert(timezone)    
         done_results['created_normalized'] = done_results['created_at'].dt.normalize()
         done_results = done_results[done_results['created_normalized'] > days_ago]
     if len(done_results) == 0:
@@ -751,8 +750,9 @@ def done_counts_func(user_id, day, country, city):
     done_counts = done_results["created_normalized"].value_counts().reset_index()
     
     done_counts["created_normalized"] = pd.to_datetime(done_counts["created_normalized"])
-    done_results = done_results.sort_values(by="created_normalized")
-    done_results["created_normalized"] = done_results["created_normalized"].dt.strftime('%Y-%m-%d')
+    done_counts = done_counts.sort_values(by="created_normalized")
+    done_counts["created_normalized"] = done_counts["created_normalized"].dt.strftime('%Y-%m-%d')
+    
     done_counts = done_counts.rename(columns={"created_normalized": "date"})
     print(done_counts)
     return done_counts.to_dict("records")
