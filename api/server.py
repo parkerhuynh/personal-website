@@ -620,10 +620,11 @@ def diff_word_dur_misspell(day, user_id, country, city):
         if timezone != 'Australia/Sydney':
             event_results["created_at"] = event_results["created_at"].dt.tz_localize('Australia/Sydney')
             event_results["created_at"] = event_results["created_at"].dt.tz_convert(timezone)
+            event_results = event_results.sort_values(by="created_at")
 
             word_results["created_at"] = word_results["created_at"].dt.tz_localize('Australia/Sydney')
             word_results["created_at"] = word_results["created_at"].dt.tz_convert(timezone)
-
+            word_results = word_results.sort_values(by="created_at")
         event_results['created_normalized'] = event_results['created_at'].dt.normalize()
         event_results = event_results[event_results['created_normalized'] > days_ago]
         word_results['created_normalized'] = word_results['created_at'].dt.normalize()
@@ -663,10 +664,10 @@ def skip_count_words_func(user_id, day, country, city):
         if timezone != 'Australia/Sydney':
             event_results["created_at"] = event_results["created_at"].dt.tz_localize('Australia/Sydney')
             event_results["created_at"] = event_results["created_at"].dt.tz_convert(timezone)
-
+            event_results = event_results.sort_values(by="created_at")
         event_results['created_normalized'] = event_results['created_at'].dt.normalize()
         event_results = event_results[event_results['created_normalized'] > days_ago]
-        
+        word_results = word_results.sort_values(by="created_at")
     if len(event_results) ==0:
         return []
     skip_count_words = event_results[event_results["level"] == 100]["word"].value_counts().reset_index()[:50]
@@ -696,7 +697,9 @@ def total_speaking_per_day(user_id, day, country, city):
         if timezone != 'Australia/Sydney':
             word_results["created_at"] = word_results["created_at"].dt.tz_localize('Australia/Sydney')
             word_results["created_at"] = word_results["created_at"].dt.tz_convert(timezone)
+            word_results = word_results.sort_values(by="created_at")
         word_results['created_normalized'] = word_results['created_at'].dt.normalize()
+
         word_results = word_results[word_results['created_normalized'] > days_ago]
 
     if len(word_results) == 0:
@@ -738,14 +741,18 @@ def done_counts_func(user_id, day, country, city):
 
         if timezone != 'Australia/Sydney':
             done_results["created_at"] = done_results["created_at"].dt.tz_localize('Australia/Sydney')
-            done_results["created_at"] = done_results["created_at"].dt.tz_convert(timezone)    
+            done_results["created_at"] = done_results["created_at"].dt.tz_convert(timezone) 
+            done_results = done_results.sort_values(by="created_at")   
         done_results['created_normalized'] = done_results['created_at'].dt.normalize()
         done_results = done_results[done_results['created_normalized'] > days_ago]
     if len(done_results) == 0:
         return []
     done_results['created_normalized'] = done_results['created_at'].dt.normalize()
     done_counts = done_results["created_normalized"].value_counts().reset_index()
-    done_counts["created_normalized"] = pd.to_datetime(done_counts["created_normalized"]).dt.strftime('%Y-%m-%d')
+    
+    done_counts["created_normalized"] = pd.to_datetime(done_counts["created_normalized"])
+    done_results = done_results.sort_values(by="created_at")
+    done_results["created_normalized"] = done_results["created_normalized"].dt.strftime('%Y-%m-%d')
     done_counts = done_counts.rename(columns={"created_normalized": "date"})
     return done_counts.to_dict("records")
 
@@ -778,7 +785,9 @@ def skip_count_per_day_func(user_id, day, country, city):
     event_results['created_normalized'] = event_results['created_at'].dt.normalize()
     skip_count_per_day = event_results[event_results['level'] == 100].groupby('created_normalized').size().reset_index()
     skip_count_per_day = skip_count_per_day.rename(columns= {"created_normalized": "date", 0: "count"})
-    skip_count_per_day["date"] = pd.to_datetime(skip_count_per_day["date"]).dt.strftime('%Y-%m-%d')
+    skip_count_per_day["date"] = pd.to_datetime(skip_count_per_day["date"])
+    skip_count_per_day = skip_count_per_day.sort_values(by="date")
+    skip_count_per_day["date"] = skip_count_per_day["date"].dt.strftime('%Y-%m-%d')
     return skip_count_per_day.to_dict("records")
 
 @app.route('/daily_averge_per_word/<user_id>/<day>/<country>/<city>', methods=['POST','GET'])
@@ -812,7 +821,9 @@ def daily_averge_per_word(user_id, day, country, city):
     average_dur_per_day = (event_results.groupby('created_normalized')["duration"].mean()/1000).reset_index()
     average_dur_per_day["duration"] =average_dur_per_day["duration"].apply(lambda x: round(x, 2))
     average_dur_per_day = average_dur_per_day.rename(columns= {"created_normalized": "date"})
-    average_dur_per_day["date"] = pd.to_datetime(average_dur_per_day["date"]).dt.strftime('%Y-%m-%d')
+    average_dur_per_day["date"] = pd.to_datetime(average_dur_per_day["date"])
+    skip_count_per_day = skip_count_per_day.sort_values(by="date")
+    skip_count_per_day["date"] = skip_count_per_day["date"].dt.strftime('%Y-%m-%d')
     return average_dur_per_day.to_dict("records")
 
 @app.route('/get_static_one_paragraph/<user_id>/<para_id>', methods=['POST','GET'])
