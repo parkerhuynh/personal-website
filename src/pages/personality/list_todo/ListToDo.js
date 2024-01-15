@@ -402,12 +402,12 @@ function App() {
                                                 onChange={() => handleCompletedChange(task)}
                                             />
                                     </td>
-                                    <td class="text-center" onDoubleClick={() => startEditing(task.id, "task")}>
+                                    <td  onDoubleClick={() => startEditing(task.id, "task")}>
 
 
                                         {((editingTaskId == task.id) & (editField == "task")) ? (
-                                            <div>
-                                                <div>
+                                            <div >
+                                                <div class="text-center">
                                                     <DatePicker
                                                         style={{ width: "100px"}}
                                                         className="form-control"
@@ -434,7 +434,7 @@ function App() {
                                                 <button className="btn btn-light mt-3 btn-sm" onClick={handleSave}>save</button>
                                             </div>
                                         ) : (
-                                            <div class="text-left" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(task.task) }} />
+                                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(task.task) }} />
                                         )}
                                     </td>
                                     <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class="text-center">
