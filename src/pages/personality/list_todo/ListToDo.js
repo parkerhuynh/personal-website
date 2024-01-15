@@ -434,7 +434,7 @@ function App() {
                                                 <button className="btn btn-light mt-3 btn-sm" onClick={handleSave}>save</button>
                                             </div>
                                         ) : (
-                                            <div class="text-center" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(task.task) }} />
+                                            <div class="text-left" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(task.task) }} />
                                         )}
                                     </td>
                                     <td style={{ verticalAlign: 'middle', textAlign: 'center' }} class="text-center">
